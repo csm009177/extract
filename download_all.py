@@ -1,14 +1,18 @@
 import logging
 import os
-import json
 import time
-from pathlib import Path
+import json
+import random
+import requests
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from datetime import datetime
 from dotenv import load_dotenv
+from check_status import DownloadStatus
 
 # 환경 변수 로드
 load_dotenv()
@@ -24,232 +28,501 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# 진행 상황 파일
+# 설정
+BASE_DIR = "downloads"
+TREE_FILE = "tree_structure.json"
 PROGRESS_FILE = "download_progress.json"
 FAILED_LOG = "failed_downloads.log"
 
-def load_progress():
-    """다운로드 진행 상황 로드"""
-    if os.path.exists(PROGRESS_FILE):
-        with open(PROGRESS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    return {"completed": [], "last_index": -1}
+# Rate limiting 설정
+MAX_REQUESTS_PER_MINUTE = 10
+DELAY_RANGE = (3, 7)
+MAX_RETRIES = 3
+PAGE_LOAD_TIMEOUT = 30
 
-def save_progress(progress):
-    """다운로드 진행 상황 저장"""
-    with open(PROGRESS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(progress, f, ensure_ascii=False, indent=2)
-
-def log_failed(node_info, error_msg):
-    """실패한 다운로드 기록"""
-    with open(FAILED_LOG, 'a', encoding='utf-8') as f:
-        f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - {node_info['name']} ({node_info['id']}) - {error_msg}\n")
+# 요청 시간 기록
+request_times = []
 
 def safe_name(name, max_length=80):
     """파일/폴더명에서 금지된 문자 제거"""
-    name = name.replace('/', '_').replace('\\', '_').replace(':', '_').replace('?', '_').replace('*', '_').replace('"', '_').replace('<', '_').replace('>', '_').replace('|', '_')
+    name = name.replace('/', '_').replace('\\', '_').replace(':', '_') \
+               .replace('?', '_').replace('*', '_').replace('"', '_') \
+               .replace('<', '_').replace('>', '_').replace('|', '_')
     return name[:max_length]
 
-def create_folder_structure(base_path, node_path):
-    """폴더 구조 생성"""
-    folder_path = os.path.join(base_path, node_path)
-    os.makedirs(folder_path, exist_ok=True)
-    return folder_path
+def rate_limit():
+    """분당 요청 수 제한"""
+    global request_times
+    now = datetime.now()
+    
+    request_times = [t for t in request_times if (now - t).seconds < 60]
+    
+    if len(request_times) >= MAX_REQUESTS_PER_MINUTE:
+        wait_time = 60 - (now - request_times[0]).seconds
+        logger.info(f"⏳ Rate limit 도달. {wait_time}초 대기 중...")
+        time.sleep(wait_time)
+        request_times.clear()
+    
+    request_times.append(now)
 
-def login_to_site(driver, user_id, password):
+def random_delay():
+    """랜덤 지연"""
+    delay = random.uniform(*DELAY_RANGE)
+    time.sleep(delay)
+
+def close_popups(driver):
+    """팝업 창 닫기"""
+    try:
+        windows = driver.window_handles
+        
+        if len(windows) > 1:
+            logger.info(f"🔔 팝업 {len(windows)-1}개 감지. 닫는 중...")
+            main_window = windows[0]
+            
+            for window in windows[1:]:
+                driver.switch_to.window(window)
+                driver.close()
+            
+            driver.switch_to.window(main_window)
+            logger.info("✓ 팝업 닫기 완료")
+            return True
+    except Exception as e:
+        logger.debug(f"팝업 체크 오류 (무시됨): {e}")
+    
+    return False
+
+def is_login_page(driver):
+    """현재 로그인 페이지인지 확인"""
+    try:
+        current_url = driver.current_url
+        
+        if "Login.aspx" in current_url:
+            return True
+        
+        try:
+            driver.find_element(By.ID, "ctl00_BodyContentPlaceHolder_txtId")
+            return True
+        except NoSuchElementException:
+            pass
+        
+        return False
+    except:
+        return False
+
+def login_to_site(driver):
     """사이트 로그인"""
     logger.info("🔐 로그인 시도...")
     
     try:
-        driver.get('https://krcon.krs.co.kr/Functions/TreeView/Left.aspx?LocaleKey=en')
-        time.sleep(3)
+        current_url = driver.current_url
+        logger.info(f"현재 URL: {current_url}")
         
-        # 로그인 필드 찾기
-        login_field_ids = [
-            ("txtLoginUser", "txtLoginiPassword"),
-            ("txtUserId", "txtPassword"),
-            ("userId", "password"),
-            ("username", "password")
-        ]
-        
-        user_input = None
-        password_input = None
-        
-        for user_id_field, pwd_field in login_field_ids:
-            try:
-                user_input = driver.find_element(By.ID, user_id_field)
-                password_input = driver.find_element(By.ID, pwd_field)
-                logger.info(f"✓ 로그인 필드 발견: {user_id_field}")
-                break
-            except NoSuchElementException:
-                continue
-        
-        if user_input and password_input:
-            user_input.clear()
-            user_input.send_keys(user_id)
-            password_input.clear()
-            password_input.send_keys(password)
-            driver.execute_script("proccessLogin();")
-            time.sleep(5)
-            logger.info("✅ 로그인 완료!")
+        if not is_login_page(driver):
+            logger.info("✅ 이미 로그인된 상태입니다.")
+            close_popups(driver)
             return True
-        else:
-            logger.warning("⚠️  로그인 필드를 찾을 수 없습니다. 이미 로그인된 상태일 수 있습니다.")
-            return True
-            
-    except Exception as e:
-        logger.error(f"❌ 로그인 실패: {str(e)}")
-        return False
-
-def download_content(driver, node, base_path):
-    """개별 노드의 콘텐츠 다운로드"""
-    try:
-        # 폴더 생성
-        folder_path = create_folder_structure(base_path, node['path'])
         
-        # URL 구성
-        if node['href']:
-            full_url = f"https://krcon.krs.co.kr/Functions/TreeView/{node['href']}"
+        if current_url == "data:," or not current_url.startswith("http"):
+            logger.info("메인 페이지로 이동 중...")
+            driver.get('https://krcon.krs.co.kr/')
+            time.sleep(3)
+            close_popups(driver)
             
-            logger.info(f"📥 다운로드 시도: {node['name']}")
-            
-            # 페이지 방문
-            driver.get(full_url)
-            time.sleep(2)
-            
-            # 페이지 소스 저장 (임시)
-            # TODO: 실제 다운로드 로직 구현 필요
-            # - PDF 링크 찾기
-            # - 파일 다운로드
-            # - 메타데이터 저장 등
-            
-            page_source = driver.page_source
-            html_file = os.path.join(folder_path, f"{safe_name(node['name'])}.html")
-            with open(html_file, 'w', encoding='utf-8') as f:
-                f.write(page_source)
-            
-            logger.info(f"✓ 저장 완료: {html_file}")
-            return True
-        else:
-            logger.warning(f"⚠️  href 없음: {node['name']}")
-            return False
-            
-    except Exception as e:
-        error_msg = str(e)
-        logger.error(f"❌ 다운로드 실패: {node['name']} - {error_msg}")
-        log_failed(node, error_msg)
-        return False
-
-def main():
-    logger.info("=" * 50)
-    logger.info("KR-CON 다운로드 크롤러 시작")
-    logger.info("=" * 50)
-    
-    # tree_structure.json 로드
-    if not os.path.exists("tree_structure.json"):
-        logger.error("❌ tree_structure.json 파일을 찾을 수 없습니다!")
-        logger.error("먼저 ext.py를 실행하여 트리 구조를 수집하세요.")
-        return
-    
-    with open("tree_structure.json", 'r', encoding='utf-8') as f:
-        tree_data = json.load(f)
-    
-    nodes = tree_data['nodes']
-    total_nodes = len(nodes)
-    logger.info(f"📊 총 {total_nodes}개 노드 발견")
-    
-    # 진행 상황 로드
-    progress = load_progress()
-    start_index = progress['last_index'] + 1
-    
-    if start_index > 0:
-        logger.info(f"🔄 이전 진행 상황 발견! {start_index}번째부터 재개합니다.")
-    
-    # Chrome 드라이버 설정
-    options = webdriver.ChromeOptions()
-    options.add_argument("--start-maximized")
-    options.add_argument('--disable-blink-features=AutomationControlled')
-    
-    # 다운로드 설정
-    download_path = os.path.abspath("downloads")
-    prefs = {
-        "download.default_directory": download_path,
-        "download.prompt_for_download": False,
-        "download.directory_upgrade": True,
-        "safebrowsing.enabled": True
-    }
-    options.add_experimental_option("prefs", prefs)
-    
-    driver = None
-    try:
-        logger.info("Chrome 브라우저 시작...")
-        driver = webdriver.Chrome(options=options)
+            if not is_login_page(driver):
+                logger.info("✅ 로그인 완료 (팝업 후 자동 로그인)")
+                return True
         
-        # 환경 변수에서 로그인 정보 가져오기
+        logger.info("로그인 페이지 감지. 로그인 진행...")
+        
         user_id = os.getenv("KRCON_USER_ID")
         password = os.getenv("KRCON_PASSWORD")
         
         if not user_id or not password:
-            logger.error("로그인 정보가 환경 변수에 설정되지 않았습니다!")
-            logger.error(".env 파일에 KRCON_USER_ID와 KRCON_PASSWORD를 설정하세요.")
-            return
+            logger.error("❌ .env 파일에 로그인 정보가 없습니다!")
+            return False
         
-        # 로그인
-        if not login_to_site(driver, user_id, password):
+        user_input = driver.find_element(By.ID, "ctl00_BodyContentPlaceHolder_txtId")
+        pwd_input = driver.find_element(By.ID, "ctl00_BodyContentPlaceHolder_txtPwd")
+        login_btn = driver.find_element(By.ID, "ctl00_BodyContentPlaceHolder_btnLogin")
+        
+        user_input.clear()
+        user_input.send_keys(user_id)
+        pwd_input.clear()
+        pwd_input.send_keys(password)
+        login_btn.click()
+        
+        time.sleep(5)
+        close_popups(driver)
+        
+        current_url = driver.current_url
+        
+        if "Login.aspx" not in current_url:
+            logger.info("✅ 로그인 완료!")
+            return True
+        
+        try:
+            error_msg = driver.find_element(By.CSS_SELECTOR, ".error, .alert, .warning")
+            logger.error(f"❌ 로그인 실패: {error_msg.text}")
+        except:
+            logger.error("❌ 로그인 실패: 알 수 없는 오류")
+        
+        return False
+        
+    except NoSuchElementException as e:
+        logger.error(f"❌ 로그인 필드를 찾을 수 없습니다: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"❌ 로그인 중 오류: {e}")
+        return False
+
+def check_session(driver):
+    """세션 확인"""
+    if is_login_page(driver):
+        logger.warning("⚠️  세션 만료 감지. 재로그인 중...")
+        return login_to_site(driver)
+    return True
+
+def load_progress():
+    """진행 상황 로드"""
+    if not os.path.exists(PROGRESS_FILE):
+        return 0
+    
+    status_checker = DownloadStatus()
+    
+    if not os.path.exists(BASE_DIR):
+        logger.warning("⚠️  downloads 폴더가 없습니다. 진행 상황을 무시하고 처음부터 시작합니다.")
+        logger.info("   진행 상황 파일 삭제됨")
+        try:
+            os.remove(PROGRESS_FILE)
+        except:
+            pass
+        return 0
+    
+    stats = status_checker.get_stats()
+    
+    if stats['total_files'] == 0:
+        logger.warning("⚠️  downloads 폴더가 비어있습니다. 진행 상황을 무시하고 처음부터 시작합니다.")
+        logger.info("   진행 상황 파일 삭제됨")
+        try:
+            os.remove(PROGRESS_FILE)
+        except:
+            pass
+        return 0
+    
+    try:
+        with open(PROGRESS_FILE, 'r', encoding='utf-8') as f:
+            progress = json.load(f)
+            last_index = progress.get("last_processed_index", 0)
+            
+            logger.info(f"   downloads 폴더에 {stats['total_files']}개 파일 발견")
+            logger.info(f"🔄 이전 진행 상황 발견! {last_index}번째부터 재개합니다.")
+            
+            return last_index
+    except Exception as e:
+        logger.error(f"진행 상황 로드 실패: {e}")
+        return 0
+
+def save_progress(index):
+    """진행 상황 저장"""
+    try:
+        with open(PROGRESS_FILE, 'w', encoding='utf-8') as f:
+            json.dump({
+                "last_processed_index": index,
+                "saved_at": datetime.now().isoformat()
+            }, f, indent=2)
+        logger.info(f"💾 진행 상황 저장됨 ({index}/{total_nodes})")
+    except Exception as e:
+        logger.error(f"진행 상황 저장 실패: {e}")
+
+def log_failed(node, error_msg):
+    """실패한 항목 로그"""
+    try:
+        with open(FAILED_LOG, 'a', encoding='utf-8') as f:
+            f.write(f"{datetime.now().isoformat()} | {node.get('name', 'Unknown')} | {node.get('href', '')} | {error_msg}\n")
+    except Exception as e:
+        logger.error(f"실패 로그 저장 오류: {e}")
+
+def download_pdf_files(driver, node, folder_path):
+    """PDF 파일 다운로드"""
+    pdf_count = 0
+    
+    try:
+        pdf_selectors = [
+            "a[href$='.pdf']",
+            "a[href*='.pdf']",
+            "a[href*='Download']",
+            "a.download-link",
+            "a[title*='PDF']",
+            "a[title*='Download']",
+            "button[onclick*='.pdf']"
+        ]
+        
+        pdf_links = []
+        for selector in pdf_selectors:
+            try:
+                links = driver.find_elements(By.CSS_SELECTOR, selector)
+                pdf_links.extend(links)
+            except:
+                pass
+        
+        unique_links = {}
+        for link in pdf_links:
+            try:
+                href = link.get_attribute('href')
+                if href and href not in unique_links:
+                    unique_links[href] = link
+            except:
+                pass
+        
+        if not unique_links:
+            logger.debug("  ℹ️  PDF 링크 없음")
+            return 0
+        
+        logger.info(f"  📕 PDF 링크 {len(unique_links)}개 발견")
+        
+        for idx, (pdf_url, link) in enumerate(unique_links.items(), 1):
+            try:
+                pdf_name = link.text.strip() or f"document_{idx}"
+                pdf_name = safe_name(pdf_name)
+                
+                if not pdf_name.endswith('.pdf'):
+                    pdf_name += '.pdf'
+                
+                pdf_path = os.path.join(folder_path, pdf_name)
+                
+                if os.path.exists(pdf_path):
+                    logger.debug(f"  ⏭️  건너뛰기 (이미 존재): {pdf_name}")
+                    continue
+                
+                cookies = {cookie['name']: cookie['value'] for cookie in driver.get_cookies()}
+                
+                response = requests.get(pdf_url, cookies=cookies, timeout=30)
+                response.raise_for_status()
+                
+                with open(pdf_path, 'wb') as f:
+                    f.write(response.content)
+                
+                pdf_count += 1
+                logger.info(f"  ✓ PDF 다운로드: {pdf_name} ({len(response.content)} bytes)")
+                
+            except Exception as e:
+                logger.warning(f"  ✗ PDF 다운로드 실패: {e}")
+        
+        return pdf_count
+        
+    except Exception as e:
+        logger.error(f"  ✗ PDF 탐색 오류: {e}")
+        return 0
+
+def download_node(driver, node, retry_count=0):
+    """개별 노드 다운로드"""
+    node_name = node.get('name', 'Unknown')
+    node_href = node.get('href', '')
+    
+    if not node_href:
+        logger.warning(f"  ⚠️  href 없음: {node_name}")
+        return False
+    
+    try:
+        rate_limit()
+        
+        folder_path = os.path.join(BASE_DIR, node.get('path', safe_name(node_name)))
+        os.makedirs(folder_path, exist_ok=True)
+        
+        html_path = os.path.join(folder_path, safe_name(node_name) + '.html')
+        
+        if os.path.exists(html_path):
+            logger.info(f"  ⏭️  건너뛰기 (이미 존재): {node_name}")
+            return True
+        
+        base_url = 'https://krcon.krs.co.kr/Functions/TreeView/'
+        full_url = base_url + node_href
+        
+        driver.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
+        driver.get(full_url)
+        
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.TAG_NAME, "body"))
+        )
+        
+        if not check_session(driver):
+            logger.error("  ✗ 세션 복구 실패")
+            
+            if retry_count < MAX_RETRIES:
+                logger.info(f"  🔄 재시도 ({retry_count + 1}/{MAX_RETRIES})...")
+                random_delay()
+                return download_node(driver, node, retry_count + 1)
+            
+            return False
+        
+        if is_login_page(driver):
+            logger.warning("  ⚠️  로그인 페이지로 리다이렉트됨. 건너뛰기...")
+            return False
+        
+        with open(html_path, 'w', encoding='utf-8') as f:
+            f.write(driver.page_source)
+        logger.info(f"  ✓ HTML 저장: {safe_name(node_name)}.html")
+        
+        pdf_count = download_pdf_files(driver, node, folder_path)
+        
+        if pdf_count > 0:
+            logger.info(f"  ✓ {pdf_count}개 PDF 다운로드 완료")
+        
+        random_delay()
+        
+        return True
+        
+    except TimeoutException:
+        logger.warning(f"  ⏱️  타임아웃: {node_name}")
+        
+        if retry_count < MAX_RETRIES:
+            logger.info(f"  🔄 재시도 ({retry_count + 1}/{MAX_RETRIES})...")
+            return download_node(driver, node, retry_count + 1)
+        
+        log_failed(node, "Timeout")
+        return False
+        
+    except Exception as e:
+        logger.error(f"  ✗ 다운로드 실패: {e}")
+        
+        if retry_count < MAX_RETRIES:
+            logger.info(f"  🔄 재시도 ({retry_count + 1}/{MAX_RETRIES})...")
+            random_delay()
+            return download_node(driver, node, retry_count + 1)
+        
+        log_failed(node, str(e))
+        return False
+
+def safe_quit_driver(driver):
+    """안전하게 드라이버 종료"""
+    if driver:
+        try:
+            logger.info("🔚 브라우저 종료 중...")
+            driver.quit()
+            logger.info("✓ 브라우저 종료 완료")
+        except Exception as e:
+            logger.debug(f"브라우저 종료 중 오류 (무시됨): {e}")
+            # 강제 종료 시도
+            try:
+                driver.service.process.kill()
+            except:
+                pass
+
+# 메인 실행
+if __name__ == "__main__":
+    logger.info("="*50)
+    logger.info("KR-CON 다운로드 크롤러 시작")
+    logger.info("="*50)
+    
+    status_checker = DownloadStatus()
+    status_checker.print_summary()
+    
+    if not os.path.exists(TREE_FILE):
+        logger.error(f"❌ {TREE_FILE} 파일이 없습니다!")
+        logger.error("먼저 ext.py를 실행하여 트리 구조를 수집하세요.")
+        exit(1)
+    
+    with open(TREE_FILE, 'r', encoding='utf-8') as f:
+        tree_data = json.load(f)
+    
+    nodes = tree_data.get('nodes', [])
+    total_nodes = len(nodes)
+    
+    logger.info(f"📊 총 {total_nodes}개 노드 발견")
+    
+    start_index = load_progress()
+    
+    options = webdriver.ChromeOptions()
+    options.add_argument("--start-maximized")
+    options.add_argument('--disable-blink-features=AutomationControlled')
+    
+    prefs = {
+        "download.default_directory": os.path.abspath(BASE_DIR),
+        "download.prompt_for_download": False,
+        "plugins.always_open_pdf_externally": True
+    }
+    options.add_experimental_option("prefs", prefs)
+    
+    driver = None
+    success_count = 0
+    fail_count = 0
+    
+    try:
+        logger.info("Chrome 브라우저 시작...")
+        driver = webdriver.Chrome(options=options)
+        
+        if not login_to_site(driver):
             logger.error("로그인에 실패했습니다. 프로그램을 종료합니다.")
-            return
+            exit(1)
         
-        # 다운로드 시작
         logger.info(f"\n📥 다운로드 시작 ({start_index + 1}/{total_nodes})...\n")
-        
-        success_count = 0
-        failed_count = 0
+        logger.info(f"⚙️  설정: 지연시간 {DELAY_RANGE[0]}-{DELAY_RANGE[1]}초, 분당 최대 {MAX_REQUESTS_PER_MINUTE}회\n")
         
         for i in range(start_index, total_nodes):
             node = nodes[i]
             
-            logger.info(f"[{i + 1}/{total_nodes}] {node['name']}")
+            logger.info(f"\n[{i+1}/{total_nodes}] {node.get('name', 'Unknown')}")
+            logger.info(f"📥 다운로드 시도: {node.get('name', 'Unknown')}")
             
-            if download_content(driver, node, "downloads"):
+            if download_node(driver, node):
                 success_count += 1
             else:
-                failed_count += 1
+                fail_count += 1
             
-            # 진행 상황 저장 (10개마다)
             if (i + 1) % 10 == 0:
-                progress['last_index'] = i
-                progress['completed'].append(node['id'])
-                save_progress(progress)
-                logger.info(f"💾 진행 상황 저장됨 ({i + 1}/{total_nodes})")
-            
-            # 요청 간격 (서버 부하 방지)
-            time.sleep(1)
+                save_progress(i + 1)
+                
+                logger.info("\n" + "-"*50)
+                logger.info(f"📊 중간 통계: 성공 {success_count}개, 실패 {fail_count}개")
+                status_checker.print_summary()
+                logger.info("-"*50 + "\n")
         
-        # 최종 진행 상황 저장
-        progress['last_index'] = total_nodes - 1
-        save_progress(progress)
+        save_progress(total_nodes)
         
-        logger.info("\n" + "=" * 50)
+        logger.info("\n" + "="*50)
         logger.info("✅ 다운로드 완료!")
-        logger.info(f"   성공: {success_count}개")
-        logger.info(f"   실패: {failed_count}개")
-        logger.info("=" * 50)
+        logger.info(f"📊 최종 통계: 성공 {success_count}개, 실패 {fail_count}개")
+        logger.info("="*50)
         
-        if failed_count > 0:
-            logger.info(f"⚠️  실패한 항목은 {FAILED_LOG}에서 확인하세요.")
+        status_checker.print_detailed()
         
     except KeyboardInterrupt:
-        logger.info("\n사용자에 의해 중단되었습니다")
-        logger.info(f"진행 상황이 저장되었습니다. 다시 실행하면 이어서 진행됩니다.")
+        logger.info("\n" + "="*50)
+        logger.info("⚠️  사용자에 의해 중단되었습니다")
+        logger.info("="*50)
+        
+        # 현재까지의 통계
+        logger.info(f"\n📊 중단 시점 통계:")
+        logger.info(f"   성공: {success_count}개")
+        logger.info(f"   실패: {fail_count}개")
+        
+        # 진행 상황 저장
+        if 'i' in locals():
+            save_progress(i + 1)
+            logger.info(f"   진행: {i+1}/{total_nodes} ({(i+1)/total_nodes*100:.1f}%)")
+        
+        logger.info("\n💾 진행 상황이 저장되었습니다.")
+        logger.info("   다시 실행하면 이어서 진행됩니다.\n")
+        
+        # 최종 상태 출력
+        status_checker.print_summary()
+        
     except Exception as e:
-        logger.error(f"❌ 에러 발생: {str(e)}")
+        logger.error(f"\n❌ 에러 발생: {str(e)}")
         import traceback
         logger.error(traceback.format_exc())
+        
+        # 에러 시에도 상태 출력
+        logger.info(f"\n📊 에러 발생 시점 통계:")
+        logger.info(f"   성공: {success_count}개")
+        logger.info(f"   실패: {fail_count}개")
+        
+        status_checker.print_summary()
     
     finally:
-        if driver:
-            logger.info("🔚 브라우저 종료...")
-            driver.quit()
-
-if __name__ == "__main__":
-    main()
+        # 안전하게 브라우저 종료
+        safe_quit_driver(driver)
+        
+        logger.info("\n" + "="*50)
+        logger.info("프로그램 종료")
+        logger.info("="*50)
