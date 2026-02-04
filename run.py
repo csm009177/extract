@@ -10,39 +10,41 @@ import os
 import time
 import json
 import random
-import requests
+import base64
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from datetime import datetime
 from dotenv import load_dotenv
 
 # 모듈 import
-from modules import login_to_krcon, ensure_logged_in, collect_tree_structure, DownloadStatus
+from modules.auth import login_to_krcon, ensure_logged_in
+from modules.tree_collector import collect_tree_structure
 
 # 환경 변수 로드
 load_dotenv()
 
 # 로깅 설정
+LOG_DIR = "logs"
+os.makedirs(LOG_DIR, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('logs/download.log', encoding='utf-8'),
+        logging.FileHandler(os.path.join(LOG_DIR, 'download.log'), encoding='utf-8'),
         logging.StreamHandler()
     ]
 )
 logger = logging.getLogger(__name__)
 
-# ===== 설정 =====
+# 설정
 BASE_DIR = "output/downloads"
 TREE_FILE = "output/tree_structure.json"
 PROGRESS_FILE = "output/download_progress.json"
-FAILED_LOG = "logs/failed_downloads.log"
 
-# Rate limiting 설정
 MAX_REQUESTS_PER_MINUTE = 10
 DELAY_RANGE = (3, 7)
 MAX_RETRIES = 3
@@ -50,7 +52,6 @@ PAGE_LOAD_TIMEOUT = 30
 
 request_times = []
 
-# ===== 유틸리티 함수 =====
 def safe_name(name, max_length=80):
     """파일/폴더명에서 금지된 문자 제거"""
     name = name.replace('/', '_').replace('\\', '_').replace(':', '_') \
@@ -77,31 +78,13 @@ def random_delay():
     delay = random.uniform(*DELAY_RANGE)
     time.sleep(delay)
 
-def close_popups(driver):
-    """팝업 창 닫기"""
-    try:
-        windows = driver.window_handles
-        if len(windows) > 1:
-            logger.info(f"🔔 팝업 {len(windows)-1}개 감지. 닫는 중...")
-            main_window = windows[0]
-            for window in windows[1:]:
-                driver.switch_to.window(window)
-                driver.close()
-            driver.switch_to.window(main_window)
-            logger.info("✓ 팝업 닫기 완료")
-            return True
-    except Exception as e:
-        logger.debug(f"팝업 체크 오류 (무시됨): {e}")
-    return False
-
-# ===== 진행 상황 관리 =====
 def load_progress():
     """진행 상황 로드"""
     if not os.path.exists(PROGRESS_FILE):
         return 0
     
     if not os.path.exists(BASE_DIR):
-        logger.warning("⚠️  downloads 폴더가 없습니다. 처음부터 시작합니다.")
+        logger.warning("⚠️  downloads 폴더가 비어있습니다. 처음부터 시작합니다.")
         try:
             os.remove(PROGRESS_FILE)
         except:
@@ -131,7 +114,6 @@ def load_progress():
 def save_progress(index, total):
     """진행 상황 저장"""
     try:
-        os.makedirs(os.path.dirname(PROGRESS_FILE), exist_ok=True)
         with open(PROGRESS_FILE, 'w', encoding='utf-8') as f:
             json.dump({
                 "last_processed_index": index,
@@ -141,81 +123,114 @@ def save_progress(index, total):
     except Exception as e:
         logger.error(f"진행 상황 저장 실패: {e}")
 
-# ===== 다운로드 함수 =====
 def download_pdf_files(driver, node, folder_path):
-    """PDF 파일 다운로드"""
+    """PDF 파일 다운로드 (상세 로그 포함)"""
     pdf_count = 0
+    node_name = node.get('name', 'Unknown')
+    
+    logger.info(f"  🔍 PDF 다운로드 시도: {node_name}")
     
     try:
-        pdf_selectors = [
-            "a[href$='.pdf']",
-            "a[href*='.pdf']",
-            "a[href*='Download']",
-            "a.download-link",
-            "a[title*='PDF']",
-        ]
-        
-        pdf_links = []
-        for selector in pdf_selectors:
-            try:
-                links = driver.find_elements(By.CSS_SELECTOR, selector)
-                pdf_links.extend(links)
-            except:
-                pass
-        
-        unique_links = {}
-        for link in pdf_links:
-            try:
-                href = link.get_attribute('href')
-                if href and href not in unique_links:
-                    unique_links[href] = link
-            except:
-                pass
-        
-        if not unique_links:
-            return 0
-        
-        logger.info(f"  📕 PDF {len(unique_links)}개 발견")
-        
-        for idx, (pdf_url, link) in enumerate(unique_links.items(), 1):
-            try:
-                pdf_name = link.text.strip() or f"document_{idx}"
-                pdf_name = safe_name(pdf_name)
+        # 1. PDF 버튼 찾기 (#ankPrint)
+        logger.info(f"  📌 1단계: PDF 버튼 찾기 (ID: ankPrint)")
+        try:
+            pdf_button = driver.find_element(By.ID, "ankPrint")
+            logger.info(f"  ✅ PDF 버튼 발견!")
+            logger.info(f"     - 버튼 텍스트: '{pdf_button.text}'")
+            logger.info(f"     - href: {pdf_button.get_attribute('href')}")
+            logger.info(f"     - onclick: {pdf_button.get_attribute('onclick')}")
+            
+            # 2. 현재 창 개수 확인
+            windows_before = driver.window_handles
+            logger.info(f"  📌 2단계: PDF 버튼 클릭 (현재 창: {len(windows_before)}개)")
+            
+            # 3. 클릭
+            pdf_button.click()
+            time.sleep(3)
+            
+            # 4. 새 창 확인
+            windows_after = driver.window_handles
+            logger.info(f"     - 클릭 후 창: {len(windows_after)}개")
+            
+            if len(windows_after) > len(windows_before):
+                logger.info(f"  ✅ 새 창 열림!")
                 
-                if not pdf_name.endswith('.pdf'):
-                    pdf_name += '.pdf'
+                # 5. 새 창으로 전환
+                new_window = [w for w in windows_after if w not in windows_before][0]
+                driver.switch_to.window(new_window)
                 
-                pdf_path = os.path.join(folder_path, pdf_name)
+                new_url = driver.current_url
+                logger.info(f"     - 새 창 URL: {new_url[:100]}...")
                 
-                if os.path.exists(pdf_path):
-                    continue
+                # 6. PDF 저장 시도
+                if new_url.startswith("blob:"):
+                    logger.info(f"  📌 3단계: Blob URL 감지 → CDP 사용")
+                    
+                    try:
+                        # CDP로 PDF 저장
+                        result = driver.execute_cdp_cmd("Page.printToPDF", {
+                            "printBackground": True,
+                            "paperWidth": 8.27,
+                            "paperHeight": 11.69,
+                            "preferCSSPageSize": True
+                        })
+                        
+                        pdf_data = base64.b64decode(result['data'])
+                        pdf_path = os.path.join(folder_path, safe_name(node_name) + '.pdf')
+                        
+                        with open(pdf_path, 'wb') as f:
+                            f.write(pdf_data)
+                        
+                        file_size = len(pdf_data)
+                        logger.info(f"  ✅ PDF 저장 완료: {os.path.basename(pdf_path)} ({file_size:,} bytes)")
+                        pdf_count = 1
+                        
+                    except Exception as e:
+                        logger.error(f"  ❌ CDP PDF 저장 실패: {e}")
                 
-                cookies = {cookie['name']: cookie['value'] for cookie in driver.get_cookies()}
-                response = requests.get(pdf_url, cookies=cookies, timeout=30)
-                response.raise_for_status()
+                elif new_url.endswith('.pdf') or 'pdf' in new_url.lower():
+                    logger.info(f"  📌 3단계: 직접 PDF URL")
+                    # 일반 URL 다운로드 로직
+                    pass
                 
-                with open(pdf_path, 'wb') as f:
-                    f.write(response.content)
+                else:
+                    logger.warning(f"  ⚠️  PDF가 아닌 URL")
                 
-                pdf_count += 1
-                logger.info(f"  ✓ PDF: {pdf_name}")
+                # 7. 원래 창으로 복귀
+                driver.close()
+                driver.switch_to.window(windows_before[0])
+                logger.info(f"  📌 4단계: 원래 창으로 복귀")
                 
-            except Exception as e:
-                logger.warning(f"  ✗ PDF 실패: {e}")
+            else:
+                logger.warning(f"  ⚠️  새 창이 열리지 않음")
+                
+        except NoSuchElementException:
+            logger.info(f"  ℹ️  PDF 버튼 없음 (ID: ankPrint)")
+            
+            # 대체 방법: 일반 PDF 링크 찾기
+            logger.info(f"  📌 대체: 일반 PDF 링크 검색")
+            pdf_links = driver.find_elements(By.CSS_SELECTOR, "a[href$='.pdf'], a[href*='.pdf']")
+            
+            if pdf_links:
+                logger.info(f"  ✅ PDF 링크 {len(pdf_links)}개 발견")
+            else:
+                logger.info(f"  ℹ️  PDF 링크 없음")
         
         return pdf_count
         
     except Exception as e:
-        logger.error(f"  ✗ PDF 탐색 오류: {e}")
+        logger.error(f"  ❌ PDF 다운로드 오류: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
         return 0
 
 def download_node(driver, node, retry_count=0):
-    """개별 노드 다운로드"""
+    """개별 노드 다운로드 - (성공여부, PDF개수) 튜플 반환"""
     node_name = node.get('name', 'Unknown')
     node_href = node.get('href', '')
     
     if not node_href:
-        return False
+        return (False, 0)
     
     try:
         rate_limit()
@@ -227,7 +242,7 @@ def download_node(driver, node, retry_count=0):
         
         if os.path.exists(html_path):
             logger.info(f"  ⏭️  건너뛰기: {node_name}")
-            return True
+            return (True, 0)  # 이미 존재하면 성공이지만 PDF는 0개
         
         base_url = 'https://krcon.krs.co.kr/Functions/TreeView/'
         full_url = base_url + node_href
@@ -244,30 +259,32 @@ def download_node(driver, node, retry_count=0):
                 logger.info(f"  🔄 재시도 ({retry_count + 1}/{MAX_RETRIES})")
                 random_delay()
                 return download_node(driver, node, retry_count + 1)
-            return False
+            return (False, 0)
         
+        # HTML 저장
         with open(html_path, 'w', encoding='utf-8') as f:
             f.write(driver.page_source)
         logger.info(f"  ✓ HTML: {safe_name(node_name)}.html")
         
+        # ✅ PDF 다운로드 호출
         pdf_count = download_pdf_files(driver, node, folder_path)
         if pdf_count > 0:
             logger.info(f"  ✓ PDF {pdf_count}개 완료")
         
         random_delay()
-        return True
+        return (True, pdf_count)  # 성공과 PDF 개수 반환
         
     except TimeoutException:
         if retry_count < MAX_RETRIES:
             return download_node(driver, node, retry_count + 1)
-        return False
+        return (False, 0)
         
     except Exception as e:
         logger.error(f"  ✗ 오류: {e}")
         if retry_count < MAX_RETRIES:
             random_delay()
             return download_node(driver, node, retry_count + 1)
-        return False
+        return (False, 0)
 
 def safe_quit_driver(driver):
     """안전하게 드라이버 종료"""
@@ -282,7 +299,6 @@ def safe_quit_driver(driver):
             except:
                 pass
 
-# ===== 메인 실행 =====
 if __name__ == "__main__":
     logger.info("\n" + "="*70)
     logger.info("🚀 KR-CON 자동 다운로더")
@@ -291,23 +307,13 @@ if __name__ == "__main__":
     driver = None
     success_count = 0
     fail_count = 0
+    pdf_count = 0  # PDF 카운트 추가
     
     try:
-        # output 폴더 생성
-        os.makedirs("output", exist_ok=True)
-        os.makedirs("logs", exist_ok=True)
-        
         # Chrome 설정
         options = webdriver.ChromeOptions()
         options.add_argument("--start-maximized")
         options.add_argument('--disable-blink-features=AutomationControlled')
-        
-        prefs = {
-            "download.default_directory": os.path.abspath(BASE_DIR),
-            "download.prompt_for_download": False,
-            "plugins.always_open_pdf_externally": True
-        }
-        options.add_experimental_option("prefs", prefs)
         
         logger.info("🌐 Chrome 브라우저 시작...")
         driver = webdriver.Chrome(options=options)
@@ -317,42 +323,31 @@ if __name__ == "__main__":
             logger.error("❌ 로그인 실패. 종료합니다.")
             exit(1)
         
-        # ===== 1단계: 트리 구조 확인 =====
+        # 1단계: 트리 구조 확인
         logger.info("\n" + "="*70)
         logger.info("📋 1단계: 트리 구조 확인")
         logger.info("="*70)
         
         if not os.path.exists(TREE_FILE):
-            logger.info(f"⚠️  {TREE_FILE} 파일이 없습니다.")
-            logger.info("🔄 자동으로 트리 구조를 수집합니다...\n")
-            
+            logger.info(f"📋 {TREE_FILE} 없음. 트리 구조를 수집합니다...")
             nodes = collect_tree_structure(driver, TREE_FILE)
-            
-            if not nodes:
-                logger.error("❌ 트리 수집 실패. 종료합니다.")
-                exit(1)
-            
-            logger.info(f"\n✅ 트리 수집 완료: {len(nodes)}개 노드\n")
         else:
             logger.info(f"✅ {TREE_FILE} 발견. 기존 데이터를 사용합니다.")
+            with open(TREE_FILE, 'r', encoding='utf-8') as f:
+                tree_data = json.load(f)
+                nodes = tree_data.get('nodes', [])
+            logger.info(f"📊 총 {len(nodes)}개 노드 로드 완료\n")
         
-        # ===== 2단계: 노드 데이터 로드 =====
-        with open(TREE_FILE, 'r', encoding='utf-8') as f:
-            tree_data = json.load(f)
-        
-        nodes = tree_data.get('nodes', [])
         total_nodes = len(nodes)
-        
-        logger.info(f"📊 총 {total_nodes}개 노드 로드 완료\n")
         
         if total_nodes == 0:
             logger.error("❌ 다운로드할 노드가 없습니다!")
             exit(1)
         
-        # ===== 3단계: 진행 상황 확인 =====
+        # 2단계: 진행 상황 확인
         start_index = load_progress()
         
-        # ===== 4단계: 다운로드 시작 =====
+        # 3단계: 다운로드 시작
         logger.info("="*70)
         logger.info(f"📥 2단계: 콘텐츠 다운로드 ({start_index + 1}/{total_nodes})")
         logger.info("="*70)
@@ -363,28 +358,30 @@ if __name__ == "__main__":
             
             logger.info(f"\n[{i+1}/{total_nodes}] {node.get('name', 'Unknown')}")
             
-            if download_node(driver, node):
+            success, node_pdf_count = download_node(driver, node)
+            if success:
                 success_count += 1
+                pdf_count += node_pdf_count  # PDF 개수 누적
             else:
                 fail_count += 1
             
             # 10개마다 저장
             if (i + 1) % 10 == 0:
                 save_progress(i + 1, total_nodes)
-                logger.info(f"\n📊 중간 통계: 성공 {success_count}, 실패 {fail_count}\n")
+                logger.info(f"\n📊 중간 통계: 성공 {success_count}, 실패 {fail_count}, PDF {pdf_count}개\n")
         
         save_progress(total_nodes, total_nodes)
         
         logger.info("\n" + "="*70)
         logger.info("✅ 다운로드 완료!")
-        logger.info(f"📊 최종: 성공 {success_count}, 실패 {fail_count}")
+        logger.info(f"📊 최종: 성공 {success_count}, 실패 {fail_count}, PDF {pdf_count}개")
         logger.info("="*70)
         
     except KeyboardInterrupt:
         logger.info("\n" + "="*70)
         logger.info("⚠️  사용자 중단")
         logger.info("="*70)
-        logger.info(f"📊 통계: 성공 {success_count}, 실패 {fail_count}")
+        logger.info(f"📊 통계: 성공 {success_count}, 실패 {fail_count}, PDF {pdf_count}개")
         
         if 'i' in locals():
             save_progress(i + 1, total_nodes)
@@ -394,7 +391,7 @@ if __name__ == "__main__":
         logger.error(f"\n❌ 에러: {e}")
         import traceback
         logger.error(traceback.format_exc())
-        logger.info(f"📊 통계: 성공 {success_count}, 실패 {fail_count}")
+        logger.info(f"📊 통계: 성공 {success_count}, 실패 {fail_count}, PDF {pdf_count}개")
     
     finally:
         safe_quit_driver(driver)
