@@ -1,3 +1,5 @@
+# 다운로드 상태 체크
+
 import os
 import json
 from datetime import datetime

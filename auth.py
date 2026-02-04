@@ -1,6 +1,5 @@
-"""
-KR-CON 로그인 모듈
-- download_all.py, inspect_page.py에서 공통으로 사용
+"""KR-CON 로그인 모듈
+download_all.py, inspect_page.py에서 공통으로 사용
 """
 import logging
 import os
