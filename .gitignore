@@ -1,0 +1,19 @@
+# 환경 변수 (로그인 정보 포함)
+.env
+
+# 로그 파일
+*.log
+
+# 디버그 파일
+tree_debug.html
+
+# Python 가상환경
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# 다운로드된 파일
+downloads/
+output/
