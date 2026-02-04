@@ -14,6 +14,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from check_status import DownloadStatus
 from auth import login_to_krcon, ensure_logged_in
+from ext import collect_tree_structure  # 트리 수집 모듈 import
 
 # 환경 변수 로드
 load_dotenv()
@@ -336,20 +337,65 @@ if __name__ == "__main__":
     status_checker = DownloadStatus()
     status_checker.print_summary()
     
-    if not os.path.exists(TREE_FILE):
-        logger.error(f"❌ {TREE_FILE} 파일이 없습니다!")
-        logger.error("먼저 ext.py를 실행하여 트리 구조를 수집하세요.")
-        exit(1)
+    # ===== 1단계: 트리 구조 확인 =====
+    logger.info("\n" + "="*70)
+    logger.info("📋 1단계: 트리 구조 확인")
+    logger.info("="*70)
     
+    if not os.path.exists(TREE_FILE):
+        logger.info(f"⚠️  {TREE_FILE} 파일이 없습니다.")
+        logger.info("🔄 자동으로 트리 구조를 수집합니다...\n")
+        
+        # Chrome 설정 (트리 수집용)
+        options = webdriver.ChromeOptions()
+        options.add_argument("--start-maximized")
+        options.add_argument('--disable-blink-features=AutomationControlled')
+        
+        driver = webdriver.Chrome(options=options)
+        
+        try:
+            # 로그인
+            if not login_to_krcon(driver):
+                logger.error("❌ 로그인 실패. 종료합니다.")
+                exit(1)
+            
+            # 트리 구조 수집 (ext.py 모듈 호출)
+            nodes = collect_tree_structure(driver, TREE_FILE)
+            
+            if not nodes:
+                logger.error("❌ 트리 수집 실패. 종료합니다.")
+                exit(1)
+            
+            logger.info(f"\n✅ 트리 수집 완료: {len(nodes)}개 노드")
+            
+        finally:
+            if driver:
+                driver.quit()
+                logger.info("브라우저 종료\n")
+                driver = None
+    else:
+        logger.info(f"✅ {TREE_FILE} 발견. 기존 데이터를 사용합니다.")
+    
+    # ===== 2단계: 노드 데이터 로드 =====
     with open(TREE_FILE, 'r', encoding='utf-8') as f:
         tree_data = json.load(f)
     
     nodes = tree_data.get('nodes', [])
     total_nodes = len(nodes)
     
-    logger.info(f"📊 총 {total_nodes}개 노드 발견")
+    logger.info(f"📊 총 {total_nodes}개 노드 로드 완료\n")
     
+    if total_nodes == 0:
+        logger.error("❌ 다운로드할 노드가 없습니다!")
+        exit(1)
+    
+    # ===== 3단계: 진행 상황 확인 =====
     start_index = load_progress()
+    
+    # ===== 4단계: 다운로드 시작 =====
+    logger.info("="*70)
+    logger.info(f"📥 2단계: 콘텐츠 다운로드 ({start_index + 1}/{total_nodes})")
+    logger.info("="*70)
     
     options = webdriver.ChromeOptions()
     options.add_argument("--start-maximized")
@@ -375,14 +421,12 @@ if __name__ == "__main__":
             logger.error("로그인에 실패했습니다. 프로그램을 종료합니다.")
             exit(1)
         
-        logger.info(f"\n📥 다운로드 시작 ({start_index + 1}/{total_nodes})...\n")
-        logger.info(f"⚙️  설정: 지연시간 {DELAY_RANGE[0]}-{DELAY_RANGE[1]}초, 분당 최대 {MAX_REQUESTS_PER_MINUTE}회\n")
+        logger.info(f"\n⚙️  설정: 지연시간 {DELAY_RANGE[0]}-{DELAY_RANGE[1]}초, 분당 최대 {MAX_REQUESTS_PER_MINUTE}회\n")
         
         for i in range(start_index, total_nodes):
             node = nodes[i]
             
             logger.info(f"\n[{i+1}/{total_nodes}] {node.get('name', 'Unknown')}")
-            logger.info(f"📥 다운로드 시도: {node.get('name', 'Unknown')}")
             
             if download_node(driver, node):
                 success_count += 1
