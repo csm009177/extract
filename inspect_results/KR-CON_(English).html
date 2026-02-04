@@ -1,0 +1,338 @@
+<html xmlns="http://www.w3.org/1999/xhtml"><head id="ctl00_Head1"><title>
+
+</title>
+<link rel="shortcut icon" href="https://krcon.krs.co.kr:443//favicon13.ico" type="image/x-icon">
+<link id="ctl00_realThemeLinkControl_realThemeLink" href="/Realweb.WebResource.axd?d=theme.css&amp;a=Realweb.Theme.KRCON" rel="stylesheet" type="text/css">
+	
+    <script src="/Commons/Scripts/jquery-1.7.1.min.js" type="text/javascript"></script>
+    <script src="/Customs/Scripts/krcon.js" type="text/javascript"></script>
+    <script src="/Customs/Scripts/krcon.ValidateAPI.js" type="text/javascript"></script>
+    <script src="/Commons/Scripts/Common.js" type="text/javascript"></script>
+    <script src="/Commons/Scripts/CustomValidationSummary.js" type="text/javascript"></script>
+    <script src="/Commons/Scripts/StringUtils.js" type="text/javascript"></script>
+    <script src="/Commons/Scripts/XmlUtils.js" type="text/javascript"></script>
+    <script src="/Commons/Scripts/WebUtils.js" type="text/javascript"></script>
+    
+    
+    <script src="../Commons/Scripts/jquery.query-2.1.7.js" type="text/javascript"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $("#ctl00_BodyContentPlaceHolder_hdnScreenWidth").val(screen.availWidth);
+            $("#ctl00_BodyContentPlaceHolder_hdnScreenHeight").val(screen.availHeight);
+
+			
+            // mesesage 처리
+            // session 끊김(다른 사용자가 접속)
+            if ($.query.get("kind") == "Expired") {
+                jQuery.WebUtils.loc('../Dialogs/DialogExistLoginSession.aspx?kind=Expired',
+                                                            jQuery.extend({ win: window,
+                                                                w: 800,
+                                                                h: 300,
+                                                                wintype: 'modal'
+                                                            }));
+            }
+
+            $("#ctl00_BodyContentPlaceHolder_txtId").focus();
+            
+			
+
+            $("input[type='text']").keypress(function (event) {
+                if (event.keyCode == 13) {
+                    if (!krcon.ValidateAPI.isValid()) return false;
+                    else
+                        eval($("#ctl00_BodyContentPlaceHolder_btnLogin").attr("href"));
+                }
+            });
+
+            $("input[type='password']").keypress(function (event) {
+                if (event.keyCode == 13) {
+                    if (!krcon.ValidateAPI.isValid()) return false;
+                    else
+                        eval($("#ctl00_BodyContentPlaceHolder_btnLogin").attr("href"));
+                }
+            });
+
+            $("#ctl00_BodyContentPlaceHolder_btnLogin").click(function () {
+
+                if (!krcon.ValidateAPI.isValid()) return false; // valid check
+
+                if (!krcon.Common.Submit.setSubmit(true)) return false;
+
+                krcon.Common.Submit.initSubmit();
+
+                return true;
+
+            });
+        });
+
+        function ExistSession(id, pwd) {
+            //var returnVal = jQuery.WebUtils.loc('../Dialogs/DialogExistLoginSession.aspx?Id=' + id + '&kind=Confirm',
+            //                                                jQuery.extend({ win: window,
+            //                                                    w: 800,
+            //                                                    h: 300,
+            //                                                    wintype: 'open'
+            //                                                }));
+
+//            window.open('../Dialogs/DialogExistLoginSession.aspx?Id=' + id + '&kind=Confirm', 'exsistlogin', 'width=800, height=300, menubar=no, scrollbars=no, status=no, resizable=no');
+
+            location.href = '../Dialogs/DialogExistLoginSession.aspx?Id=' + id + '&kind=Confirm';
+
+//            if (returnVal == true) {
+//                $.ajax({
+//                    type: "POST",
+//                    url: encodeURI("../Generators/DeleteLoginSession.ashx"),
+//                    cache: false,
+//                    data: ({ UserId: id }),
+//                    dataType: "json",
+//                    async: false,
+//                    success: function (json) {
+//                        RefreshPage(json.SECURITY_LEVEL);
+//                    },
+//                    error: function () {
+//                    }
+//                });
+//            }
+        }
+
+        function RefreshPage(level) {
+            try {
+                if (level > 0) {
+                    parent.parent.window.frames['bodyFrame'].location = '../Functions/Body.aspx';
+                    parent.parent.window.frames['topFrame'].location = '../Index/TopMenu.aspx';
+                    parent.parent.window.frames['adminFrame'].location = '../Index/AdminMenu.aspx';
+                } else {
+                    parent.parent.window.frames['topFrame'].location = '../Index/TopMenu.aspx';
+
+                    var targetUrl = '/Functions/TreeView/List.aspx?LocaleKey=en&Tree=0000.00e0';
+                    if (targetUrl == '') {
+                        window.top.location = '/';
+                    } else {
+                        window.location.href = '/Functions/TreeView/List.aspx?LocaleKey=en&Tree=0000.00e0';
+                    }
+                }
+            }
+            catch(e) {
+                window.location.href = '/Functions/TreeView/List.aspx?LocaleKey=en&Tree=0000.00e0';
+            }
+        }
+        
+    </script>
+
+
+<!--[if ie]>
+    <style type="text/css">
+    html {
+	    overflow: scroll;
+	    overflow-x: auto;
+    }
+    </style>
+    <![endif]-->    
+</head>
+
+<body class="Realweb">    
+
+    <form name="aspnetForm" method="post" action="Login.aspx?Return=%2fFunctions%2fTreeView%2fList.aspx%3fLocaleKey%3den&amp;Tree=0000.00e0" id="aspnetForm">
+<div>
+<input type="hidden" name="ctl00_RadScriptManager1_TSM" id="ctl00_RadScriptManager1_TSM" value=";;System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35:en-US:9da113d1-62cb-41a4-9573-c03cf93e060f:ea597d4b:b25378d2">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+<input type="hidden" name="__REAL_StatePersister" id="__REAL_StatePersister" value="RCL.Core.CachePageStatePersister">
+<input type="hidden" name="__REAL_VIEWSTATE" id="__REAL_VIEWSTATE" value="c2682deb-1bca-4f3a-ae29-f913bccb89bb">
+<input type="hidden" name="__VIEWSTATE" id="
+__VIEWSTATE" value="">
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['aspnetForm'];
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=Jqt8ZUM2PsBT7iqo2bJsAMYqNghHoBdY5Cyqj9U1nfH66cMTn-AkgQgIi3Zg3Dl36hkI97aWgsz-HtwV33C2AkYJ1vY1&amp;t=638803284698914358" type="text/javascript"></script>
+
+
+<script src="/Telerik.Web.UI.WebResource.axd?_TSM_HiddenField_=ctl00_RadScriptManager1_TSM&amp;compress=1&amp;_TSM_CombinedScripts_=%3b%3bSystem.Web.Extensions%2c+Version%3d3.5.0.0%2c+Culture%3dneutral%2c+PublicKeyToken%3d31bf3856ad364e35%3aen-US%3a9da113d1-62cb-41a4-9573-c03cf93e060f%3aea597d4b%3ab25378d2" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+if (typeof(Sys) === 'undefined') throw new Error('ASP.NET Ajax client-side framework failed to load.');
+//]]>
+</script>
+
+<div>
+
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEWCAL+raDpAgKfx4yYDQKHv/CkAgLX9ousAQLl16ayDwK59NpOApTT+80DArPu1tMNLSaF8fVo7L8xYQxLtor5msS56gA=">
+</div>
+    
+        <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$RadScriptManager1', document.getElementById('aspnetForm'));
+Sys.WebForms.PageRequestManager.getInstance()._updateControls([], [], [], 90);
+//]]>
+</script>
+
+        
+        <script type="text/javascript">
+        	var inputs = document.getElementsByTagName("input");
+        	for (i = 0; i < inputs.length; i++) {
+        		inputs[i].onfocus = function () { this.className = 'Focus' };
+        		inputs[i].onblur = function () { this.className = 'outFocus' };
+        	}
+        </script> 
+    
+        <div style="display: none" id="divMoveRight" class="FrameMoveRight" title="Move to right" onclick="javascript:return showframe();"></div>
+    
+        <div class="Contents">        
+         
+            
+
+                  
+            
+
+        	
+            
+            
+			        
+        
+            
+
+                      
+            
+
+        
+            
+
+                       
+            
+               
+        
+            
+    <input type="hidden" name="ctl00$BodyContentPlaceHolder$hdnScreenWidth" id="ctl00_BodyContentPlaceHolder_hdnScreenWidth" value="1536">
+    <input type="hidden" name="ctl00$BodyContentPlaceHolder$hdnScreenHeight" id="ctl00_BodyContentPlaceHolder_hdnScreenHeight" value="960">
+    <div class="RealLogin">
+        <div id="ctl00_BodyContentPlaceHolder_realpanel3" class="RealPanel">
+	<div class="NormalPanel"><div class="LinePanel">
+                <table id="" cellspacing="0" cellpadding="0" border="0" class="OutPanelOutline  HasContent">
+
+                    <tbody><tr>
+                        <td class="OutTopLeftBg"></td>
+                        <td class="OutTopCenterBg"></td>
+                        <td class="OutTopRightBg"></td>
+                    </tr>
+                    <tr>
+                        <td class="OutMiddleLeftBg"></td>
+                        <td class="OutMiddleCenterBg">
+                
+                <div class="Title">
+                    <table cellspacing="0" cellpadding="0" border="0" class="Outline">
+                        <tbody><tr>
+                            <td class="LeftArea"></td>
+                            <td class="TitleArea"></td>
+                            <td class="ControlArea"></td>
+                            <td class="RightArea"></td>
+                       </tr>
+                   </tbody></table>
+                </div>
+                
+                        <table cellspacing="0" cellpadding="0" border="0" class="PanelOutline">
+                                <tbody><tr>
+                                    <td class="TopLeftBg"></td>
+                                    <td class="TopCenterBg"></td>
+                                    <td class="TopRightBg"></td>
+                                </tr>
+                                <tr>
+                                    <td class="MiddleLeftBg"></td>
+                                    <td class="MiddleCenterBg"><div class="ContentPanel">
+		
+            <div class="LogIn">
+                <div class="InputArea">
+                    <table cellspacing="0" cellpadding="0" border="0" class="Outline">
+                        <colgroup>
+                            <col class="Title"><col>
+                        </colgroup>
+                        <tbody><tr class="Row">
+                            <td class="Title">ID</td>
+                            <td class="Value">
+                                <input name="ctl00$BodyContentPlaceHolder$txtId" type="text" id="ctl00_BodyContentPlaceHolder_txtId" class="TextBox" checkvalid="true" validmessage="Please enter the User ID" style="ime-mode:disabled">
+                            </td>
+                        </tr>
+                        <tr class="Row">
+                            <td class="Title">Password</td>
+                            <td class="Value">
+                                <input name="ctl00$BodyContentPlaceHolder$txtPwd" type="password" id="ctl00_BodyContentPlaceHolder_txtPwd" class="TextBox" checkvalid="true" validmessage="Please enter the Password" style="ime-mode:disabled">
+                                     &nbsp; 
+                                <img src="../images/progress.gif" id="ProgressImg" style="vertical-align:middle; display:none;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Title"></td>
+                            <td class="ErrorTd">
+                                <span id="ctl00_BodyContentPlaceHolder_lblErrorMessage" class="InputError"></span>
+                            </td>
+                        </tr>
+                    </tbody></table> 
+                </div> 
+                <div class="ButtonArea">
+                    <a id="ctl00_BodyContentPlaceHolder_btnLogin" class="MainButton" href="javascript:__doPostBack('ctl00$BodyContentPlaceHolder$btnLogin','')"><span class="Wrap"><span class="Text">Log In</span></span></a>
+                    <a onclick="javascript:window.history.back();return false;" id="ctl00_BodyContentPlaceHolder_btnCancel" class="SubButton" href="javascript:__doPostBack('ctl00$BodyContentPlaceHolder$btnCancel','')"><span class="Wrap"><span class="Text">Cancel</span></span></a>                    
+                </div>
+            </div>   
+            <div class="SignIn" style="text-align:center;">
+                <a id="ctl00_BodyContentPlaceHolder_btnSignIn" class="InfoButton" href="javascript:__doPostBack('ctl00$BodyContentPlaceHolder$btnSignIn','')"><span class="Wrap"><span class="Text">Sign-up for 2 days Free Trial</span></span></a><br>
+                <span class="Text" style="color:Red;"><b>valid for 2 days (one person-one registration)</b></span>
+            </div>
+            <div class="Comment" style="text-align: center;">Help : <a href="mailto:krcon@krs.co.kr">krcon@krs.co.kr</a></div>
+                  
+        
+	</div>
+                                        </td>
+                                        <td class="MiddleRightBg"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="BottomLeftBg"></td>
+                                        <td class="BottomCenterBg"></td>
+                                        <td class="BottomRightBg"></td>
+                                    </tr>
+                                </tbody></table>
+
+                            </td>
+                            <td class="OutMiddleRightBg"></td>
+                        </tr>
+                        <tr>
+                            <td class="OutBottomLeftBg"></td>
+                            <td class="OutBottomCenterBg"></td>
+                            <td class="OutBottomRightBg"></td>
+                        </tr>
+                    </tbody></table>
+                </div></div>
+</div>
+        
+    </div>
+    <iframe id="expiredMailFrame" name="expiredMailFrame" height="0" width="0" frameborder="0">
+    </iframe>
+
+                      
+            
+       
+                
+        </div>
+        
+    
+
+<script type="text/javascript">
+//<![CDATA[
+window.__TsmHiddenField = $get('ctl00_RadScriptManager1_TSM');Sys.Application.initialize();
+//]]>
+</script>
+</form>
+
+
+</body></html>

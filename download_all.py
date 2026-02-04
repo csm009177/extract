@@ -13,6 +13,7 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from datetime import datetime
 from dotenv import load_dotenv
 from check_status import DownloadStatus
+from auth import login_to_krcon, ensure_logged_in
 
 # 환경 변수 로드
 load_dotenv()
@@ -91,96 +92,9 @@ def close_popups(driver):
     
     return False
 
-def is_login_page(driver):
-    """현재 로그인 페이지인지 확인"""
-    try:
-        current_url = driver.current_url
-        
-        if "Login.aspx" in current_url:
-            return True
-        
-        try:
-            driver.find_element(By.ID, "ctl00_BodyContentPlaceHolder_txtId")
-            return True
-        except NoSuchElementException:
-            pass
-        
-        return False
-    except:
-        return False
-
-def login_to_site(driver):
-    """사이트 로그인"""
-    logger.info("🔐 로그인 시도...")
-    
-    try:
-        current_url = driver.current_url
-        logger.info(f"현재 URL: {current_url}")
-        
-        if not is_login_page(driver):
-            logger.info("✅ 이미 로그인된 상태입니다.")
-            close_popups(driver)
-            return True
-        
-        if current_url == "data:," or not current_url.startswith("http"):
-            logger.info("메인 페이지로 이동 중...")
-            driver.get('https://krcon.krs.co.kr/')
-            time.sleep(3)
-            close_popups(driver)
-            
-            if not is_login_page(driver):
-                logger.info("✅ 로그인 완료 (팝업 후 자동 로그인)")
-                return True
-        
-        logger.info("로그인 페이지 감지. 로그인 진행...")
-        
-        user_id = os.getenv("KRCON_USER_ID")
-        password = os.getenv("KRCON_PASSWORD")
-        
-        if not user_id or not password:
-            logger.error("❌ .env 파일에 로그인 정보가 없습니다!")
-            return False
-        
-        user_input = driver.find_element(By.ID, "ctl00_BodyContentPlaceHolder_txtId")
-        pwd_input = driver.find_element(By.ID, "ctl00_BodyContentPlaceHolder_txtPwd")
-        login_btn = driver.find_element(By.ID, "ctl00_BodyContentPlaceHolder_btnLogin")
-        
-        user_input.clear()
-        user_input.send_keys(user_id)
-        pwd_input.clear()
-        pwd_input.send_keys(password)
-        login_btn.click()
-        
-        time.sleep(5)
-        close_popups(driver)
-        
-        current_url = driver.current_url
-        
-        if "Login.aspx" not in current_url:
-            logger.info("✅ 로그인 완료!")
-            return True
-        
-        try:
-            error_msg = driver.find_element(By.CSS_SELECTOR, ".error, .alert, .warning")
-            logger.error(f"❌ 로그인 실패: {error_msg.text}")
-        except:
-            logger.error("❌ 로그인 실패: 알 수 없는 오류")
-        
-        return False
-        
-    except NoSuchElementException as e:
-        logger.error(f"❌ 로그인 필드를 찾을 수 없습니다: {e}")
-        return False
-    except Exception as e:
-        logger.error(f"❌ 로그인 중 오류: {e}")
-        return False
-
 def check_session(driver):
-    """세션 확인"""
-    if is_login_page(driver):
-        logger.warning("⚠️  세션 만료 감지. 재로그인 중...")
-        return login_to_site(driver)
-    return True
+    """세션 확인 및 필요시 재로그인"""
+    return ensure_logged_in(driver)
 
 def load_progress():
     """진행 상황 로드"""
@@ -355,9 +269,14 @@ def download_node(driver, node, retry_count=0):
             
             return False
         
-        if is_login_page(driver):
-            logger.warning("  ⚠️  로그인 페이지로 리다이렉트됨. 건너뛰기...")
-            return False
+        # 로그인 페이지 체크 (세션 만료 확인)
+        if "Login.aspx" in driver.current_url:
+            logger.warning("  ⚠️  로그인 페이지로 리다이렉트됨. 세션 확인 필요...")
+            if not ensure_logged_in(driver):
+                logger.error("  ❌ 재로그인 실패. 건너뛰기...")
+                return False
+            # 재로그인 후 다시 시도
+            return download_node(driver, node, retry_count + 1)
         
         with open(html_path, 'w', encoding='utf-8') as f:
             f.write(driver.page_source)
@@ -451,7 +370,8 @@ if __name__ == "__main__":
         logger.info("Chrome 브라우저 시작...")
         driver = webdriver.Chrome(options=options)
         
-        if not login_to_site(driver):
+        # 로그인
+        if not login_to_krcon(driver):
             logger.error("로그인에 실패했습니다. 프로그램을 종료합니다.")
             exit(1)
         
