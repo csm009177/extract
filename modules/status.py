@@ -1,4 +1,6 @@
-# 다운로드 상태 체크
+"""
+다운로드 상태 체크 모듈
+"""
 
 import os
 import json
@@ -7,7 +9,7 @@ from datetime import datetime
 class DownloadStatus:
     """다운로드 상태 체크 클래스"""
     
-    def __init__(self, downloads_dir="downloads", progress_file="download_progress.json", tree_file="tree_structure.json"):
+    def __init__(self, downloads_dir="output/downloads", progress_file="output/download_progress.json", tree_file="output/tree_structure.json"):
         self.downloads_dir = downloads_dir
         self.progress_file = progress_file
         self.tree_file = tree_file

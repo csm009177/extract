@@ -1,7 +1,6 @@
 """
 트리 구조 수집 모듈
 - KR-CON 사이트의 트리 구조를 수집하여 JSON으로 저장
-- download_all.py에서 import하여 사용 가능
 """
 
 import logging
@@ -15,7 +14,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from dotenv import load_dotenv
-from auth import login_to_krcon
+from .auth import login_to_krcon
 
 # 환경 변수 로드
 load_dotenv()
@@ -25,7 +24,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('crawler.log', encoding='utf-8'),
+        logging.FileHandler('logs/crawler.log', encoding='utf-8'),
         logging.StreamHandler()
     ]
 )
@@ -76,7 +75,7 @@ def parse_tree(li, parent_path=""):
     
     return nodes
 
-def collect_tree_structure(driver, output_file="tree_structure.json"):
+def collect_tree_structure(driver, output_file="output/tree_structure.json"):
     """
     트리 구조 수집 (모듈로 사용 가능)
     
