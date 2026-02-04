@@ -2,10 +2,16 @@
 .env
 
 # 로그 파일
+logs/
 *.log
 
-# 디버그 파일
+# 디버그 파일 (루트에 생성되지 않도록)
+/*.html
 tree_debug.html
+treeview_debug.html
+
+# 결과물 폴더
+output/
 
 # Python 가상환경
 .venv/
@@ -13,7 +19,3 @@ venv/
 __pycache__/
 *.pyc
 *.pyo
-
-# 다운로드된 파일
-downloads/
-output/
