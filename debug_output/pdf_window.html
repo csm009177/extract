@@ -1,0 +1,844 @@
+<html xmlns="http://www.w3.org/1999/xhtml" class="t-chrome t-chrome144 sb-init"><head id="ctl00_Head1"><title>
+	Reg. 7
+</title><meta http-equiv="X-UA-Compatible" content="IE=Edge"><meta name="theme-color" content="#333"><meta http-equiv="Expires" content="-1"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Cache-Control" content="no-cache"><link rel="stylesheet" href="../../Customs/Styles/assets/css/preload.min.css"><link rel="stylesheet" href="../../Customs/Styles/assets/css/plugins.min.css"><link rel="stylesheet" href="../../Customs/Styles/assets/css/style.light-blue-500.min.css"><link rel="stylesheet" href="../../Customs/Styles/BootstrapCustom.css">
+    <style type="text/css">
+        
+        html, body {
+            height: 100%;
+        }
+    </style>
+    
+        <script src="/Commons/Scripts/jquery-1.7.1.min.js" type="text/javascript"></script>
+        <script src="/Customs/Scripts/krcon.js?t=639059001905480930" type="text/javascript"></script>
+        <script src="/Customs/Scripts/krcon.Frame.js?t=639059001905480930" type="text/javascript"></script>
+        <script src="/Customs/Scripts/krcon.WordSearch.js?t=639059001905480930" type="text/javascript"></script>
+        <script src="/Customs/Scripts/krcon.TreeAPI.js?t=639059001905480930" type="text/javascript"></script>
+        <script src="/Customs/Scripts/krcon.ValidateAPI.js?t=639059001905480930" type="text/javascript"></script>
+        <script src="/Customs/Scripts/krcon.Common.js?t=639059001905480930" type="text/javascript"></script>
+        <script src="/Customs/Scripts/krcon.AdminPageTool.js?t=639059001905480930" type="text/javascript"></script>
+        <script src="/Commons/Scripts/Common.js?t=639059001905480930" type="text/javascript"></script>
+        <script src="/Commons/Scripts/CustomValidationSummary.js?t=639059001905480930" type="text/javascript"></script>
+        <script src="/Commons/Scripts/StringUtils.js?t=639059001905480930" type="text/javascript"></script>
+        <script src="/Commons/Scripts/XmlUtils.js?t=639059001905480930" type="text/javascript"></script>
+        
+    
+
+	<script type="text/javascript">
+		window.onerror = function () { return true; }
+
+		$(function () {
+
+			$(".TextBox").keypress(function (e) {
+				if (e.keyCode == 13) {
+					eval($("a.SearchButton").attr("href"));
+				}
+			});
+
+			$(".MainButtonGroup [id$='Save']").click(function () {
+				try {
+					if (krcon.ValidateAPI.isValid() == false)
+						return false;
+
+					return krcon.Common.Submit.setSubmit(true);
+				}
+				catch (e) {
+				}
+			});
+
+			$(".MainButtonGroup [id$='Update']").click(function () {
+				try {
+					if (krcon.ValidateAPI.isValid() == false)
+						return false;
+
+					return krcon.Common.Submit.setSubmit(true);
+				}
+				catch (e) {
+				}
+			});
+
+			$(".MainButtonGroup [id$='Delete']").click(function () {
+				try {
+					if (krcon.Common.Submit.setSubmit(true) == false)
+						return false;
+
+					return confirm("포함된 하위 노드, 첨부파일 모두 삭제됩니다. \r\n삭제하시겠습니까?");
+				}
+				catch (e) {
+				}
+			});
+
+			$(window).mousemove(function (e) {
+			    if (parent.mouseState == "D") {
+			        parent.framePosition = e.pageX;
+			        parent.mouseLocation = "right";
+			        parent.$('body').trigger("mousemove");
+			    }
+			});
+
+			$(window).mouseup(function (e) {
+			    if (parent.mouseState == "D") {
+			        parent.$('body').trigger("mouseup");
+			    }
+            });
+
+		});
+	</script>
+<link href="/WebResource.axd?d=cZMx8g8CBmhVxDqXuzcRP7Hxe0--QIuqljL7xezUEIx9LW2_rbxZLSWx_GoVc1neVnW-7j8lHWXjbEvDrEx5wCJnHwPvPHqdxU5Ku7rHSPPAvGaQAXP_Xma8goYfTJs-CiOUJyTLV_nP_rHf2kHzZ9qCIu81&amp;t=638429186799000581" type="text/css" rel="stylesheet" class="Telerik_stylesheet"><link href="/WebResource.axd?d=pcKYp9jOc09kaXXMC4MAPrghsMmRQKVkHoYNlBh0JN9kPE1frDaPYn--Nzh0gScrSGbBz6OZpbxyFjIZzYIfLpln7QoiF3Vsrrk-Ha0qn2FD-up9GiwsagOx4kDEM6i4X4YwMtV-uqgnrINOOSA4WQRRVw59__VnSZop-3MgJBpP6Qgc0&amp;t=638429186786344326" type="text/css" rel="stylesheet" class="Telerik_stylesheet"><link rel="stylesheet" type="text/css" href="../../Customs/Scripts/GoogleApi/sunburst.css"></head>
+
+<body style="overflow: visible;">
+    <form name="aspnetForm" method="post" action="View.aspx?LocaleKey=en&amp;Id=9520" id="aspnetForm">
+<div>
+<input type="hidden" name="ctl00_PageHeaderContentPlaceHolder_RadScriptManager1_TSM" id="ctl00_PageHeaderContentPlaceHolder_RadScriptManager1_TSM" value=";;System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35:en-US:9da113d1-62cb-41a4-9573-c03cf93e060f:ea597d4b:b25378d2;Telerik.Web.UI, Version=2020.2.617.35, Culture=neutral, PublicKeyToken=121fae78165ba3d4:en-US:652a635d-78ca-4fc5-989f-3396e0ef31ee:16e4e7cd:33715776:f7645509:24ee1bba:f46195d3:2003d0b8:c128760b:88144a7a:1e771326:aa288e2d:258f1c72">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+<input type="hidden" name="__REAL_StatePersister" id="__REAL_StatePersister" value="RCL.Core.CachePageStatePersister">
+<input type="hidden" name="__REAL_VIEWSTATE" id="__REAL_VIEWSTATE" value="8e0295e4-2f1f-4fef-baeb-a62c538ba15c">
+<input type="hidden" name="__VIEWSTATE" id="
+__VIEWSTATE" value="">
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['aspnetForm'];
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=Jqt8ZUM2PsBT7iqo2bJsAMYqNghHoBdY5Cyqj9U1nfH66cMTn-AkgQgIi3Zg3Dl36hkI97aWgsz-HtwV33C2AkYJ1vY1&amp;t=638803284698914358" type="text/javascript"></script>
+
+
+<script src="/Telerik.Web.UI.WebResource.axd?_TSM_HiddenField_=ctl00_PageHeaderContentPlaceHolder_RadScriptManager1_TSM&amp;compress=1&amp;_TSM_CombinedScripts_=%3b%3bSystem.Web.Extensions%2c+Version%3d3.5.0.0%2c+Culture%3dneutral%2c+PublicKeyToken%3d31bf3856ad364e35%3aen-US%3a9da113d1-62cb-41a4-9573-c03cf93e060f%3aea597d4b%3ab25378d2%3bTelerik.Web.UI%2c+Version%3d2020.2.617.35%2c+Culture%3dneutral%2c+PublicKeyToken%3d121fae78165ba3d4%3aen-US%3a652a635d-78ca-4fc5-989f-3396e0ef31ee%3a16e4e7cd%3a33715776%3af7645509%3a24ee1bba%3af46195d3%3a2003d0b8%3ac128760b%3a88144a7a%3a1e771326%3aaa288e2d%3a258f1c72" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+if (typeof(Sys) === 'undefined') throw new Error('ASP.NET Ajax client-side framework failed to load.');
+//]]>
+</script>
+
+<div>
+
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEWBAL+raDpAgKu0bWhAQLbpdLIAQKyt52vBUId58+yV+TynXzqCG/HXvC3EdQj">
+</div>
+        <div id="ms-preload" class="ms-preload" style="display: none;">
+          <div id="status" style="display: none;">
+            <div class="spinner">
+              <div class="dot1 bg-primary"></div>
+              <div class="dot2 bg-primary"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+            
+    <link href="../../Customs/Styles/contents.css" rel="stylesheet" type="text/css">
+    
+
+    <link rel="stylesheet" href="../../ClientConfig/PostItAll/libs/jquery-ui-1.10.0.custom.css">
+    
+    <link rel="stylesheet" href="../../ClientConfig/PostItAll/plugin/jquery.postitall.css">
+    
+
+    <script src="../../Commons/Scripts/jquery-ui.min.js"></script>
+    
+
+    
+
+    
+    <script src="../../ClientConfig/PostItAll/plugin/jquery.postitall.js"></script>
+
+    
+    
+    
+    <script type="text/javascript">
+        
+        $(document).ready(function () {
+            $(function () {
+                $('#divContent a[href]').attr('target', '_blank');
+            });
+
+            var table = $(".Header_OutLine");
+            var trSub = $(table).children("tbody").children("[name=trSub]");
+            if (trSub.length == 0) {
+                $("#btnExpand").hide();
+            }
+
+            if($("#ctl00_BodyContentPlaceHolder_lblHeader").text() == "") {
+                $("#divContent").css("margin-top", "0");
+            }
+
+            
+                $("#btnEdit").hide();
+            
+
+            if ("False" == "True") {
+                $("#ankMemo").hide();
+                $("#btnCollapseTitle").hide();
+                $("#btnExpandTitle").hide();
+            }
+
+            $.ajax( {
+                url: '/Generators/MemoHandler.ashx',
+                type: "POST",
+                async: true,
+                data: {
+                    CategoryId : "9520",
+                    Command : "L"
+                },
+                success: function(data) {
+                    var json = $.parseJSON(data);
+                    var list = json.$values;
+                    $.noConflict()(function (jq) {
+                        $.each(list, function (idx, item) {
+                            var obj = $('#ctl00_BodyContentPlaceHolder_lblContent').postitall({
+                                'textcolor': "#000000",
+                                'backgroundcolor': "#FFEF70",
+                                'description': item.Content,
+                                'newPostit': true,
+                                'position': "absolute",
+                                'autoheight': false,
+                                'removable': true,
+                                'changeoptions': true,
+                                'posX': item.PosTop,
+                                'posY': item.PosLeft,
+                                'height': item.Height - 30,
+                                'width': item.Width,
+                                'minHeight': 100,
+                                'minWidth': 120
+                            });
+
+                            var postit = $('#newPostIt_' + (idx + 1));
+                            var img = "<img id='imgPostIt_" + (idx + 1) + "' src='../../Images/memo.JPG' style='position:absolute; left:" + postit.css("left") + "; top:" + postit.css("top") + "; cursor:pointer; width:40px; height:40px' href='javascript:void(0)' ondblclick=\"javascript:expandPostit('" + (idx + 1) + "'); return false;\" ondragend=\"javascript:dragEndPostit(this); return false;\" />";
+                            postit.parent().append(img);
+                            postit.hide();
+                        });
+                    });
+                }
+            });
+
+            //$(".Header_OutLine").each(function (idx, obj) {
+            //    if ($(obj).children("tbody").children("[name=trSub]").length == 0) {
+            //        $("[name=btnExpand]")[idx].style.display = "none";
+            //    }
+            //});
+
+            $("#divContent").scroll(function () {
+                if ($('#divContent').scrollTop() > 0)
+                    $("#btnGoToTop").show();
+                else
+                    $("#btnGoToTop").hide();
+            });
+
+            $('#increaseFontBtn').click(function () {
+                var percent = parseInt($("#hdnFontSize").val());
+                var newpercent = percent + 10;
+
+                if (percent == 200) return false;
+
+                $("#hdnFontSize").val(newpercent);
+                var constant = newpercent / 100;
+                
+                var newSize = 13 * constant; // 폰트 크기를 2px 증가시킵니다.
+                $('#divContent').css('font-size', newSize + 'px'); // 새로운 폰트 크기를 설정합니다.
+                $("#percentBtn").text(newpercent + '%');
+                return false;
+            });
+
+            $('#decreaseFontBtn').click(function () {
+                var percent = parseInt($("#hdnFontSize").val());
+                var newpercent = percent - 10
+
+                if (percent == 50) return false;
+
+                $("#hdnFontSize").val(newpercent);
+                var constant = newpercent / 100;
+                
+                var newSize = 13 * constant; // 폰트 크기를 2px 감소시킵니다.
+                $('#divContent').css('font-size', newSize + 'px'); // 새로운 폰트 크기를 설정합니다.
+                $("#percentBtn").text(newpercent + '%');
+
+                return false;
+            });
+
+            $('#percentBtn').click(function () {
+                $("#hdnFontSize").val(100);
+                $('#divContent').css('font-size', '13px'); // 새로운 폰트 크기를 설정합니다.
+                $("#percentBtn").text('100%');
+
+                return false;
+            });
+
+        });
+
+        function OpenRefMaterialPopup (matId, textId) {
+            jQuery.WebUtils.loc('RefMaterialView.aspx?LocaleKey=en&CategoryTextId=' + textId + '&RefId=' + matId, jQuery.extend({ win: window,
+                w: 800,
+                h: 900,
+                sb: true,
+                rs: true,
+                wintype: 'open'
+            }));
+        }
+        
+        function clickmore() {
+            document.getElementById("singleline").style.display="none"; 
+            document.getElementById("multiline").style.display="block";
+        }
+
+        function clickcollapsed() {
+            document.getElementById("singleline").style.display="block"; 
+            document.getElementById("multiline").style.display="none";
+        }
+
+        function onMemoAdd() {
+            var cnt = parseInt($("#ctl00_PageInfoContentPlaceHolder_hdnNewMemoCnt").val());
+            
+            $('#ctl00_BodyContentPlaceHolder_lblContent').postitall({
+                    'textcolor': "#000000",
+                    'backgroundcolor': "#FFEF70",
+                    'description': "",
+                    'newPostit': true,
+                    'position': "absolute",
+                    'autoheight': false,
+                    'removable': true,
+                    'changeoptions': true,
+                    //            'posX'            : "150px",
+                    //            'posY'            : (parseInt($('#divPostit').css("width")) - 120).toString() + "px",
+                    'posX': (100 + cnt * 20) + "px",
+                    'posY': ($("#ctl00_BodyContentPlaceHolder_lblContent").width() - 150 - cnt * 20) + "px",
+                    'height': 100,
+                    'width': 120,
+                    'minHeight': 100,
+                    'minWidth': 120
+                });
+            $("#ctl00_PageInfoContentPlaceHolder_hdnNewMemoCnt").val(cnt + 1);
+        }
+
+        window.onbeforeunload = function (e) {
+
+            $.ajax( {
+                url: '/Generators/MemoHandler.ashx',
+                type: "POST",
+                async: true,
+                data: {
+                    CategoryId : "9520",
+                    Command : "D"
+                },
+                success: function(data) {
+                    var json = $.parseJSON(data);
+                    if(json.Type == "Success") {
+                    }
+                    else if(json.Type == "Fail") {
+                    }
+                }
+            });
+
+            $('div[id^="newPostIt_"]').each(function(idx, div) {
+                $.ajax( {
+                    url: '/Generators/MemoHandler.ashx',
+                    type: "POST",
+                    async: true,
+                    data: {
+                        CategoryId : "9520",
+                        Command : "S",
+                        PosTop : Math.round($(div).css("top").replace("px", "")),
+                        PosLeft : Math.round($(div).css("left").replace("px", "")),
+                        Width : parseInt($(div).css("width").replace("px", "")) + 10,
+                        Height : parseInt($(div).css("height").replace("px", "")) + 10,
+                        Content : $('div[id^="pia_editable_"]')[idx].innerHTML
+                    },
+                    success: function(data) {
+                        var json = $.parseJSON(data);
+                        if(json.Type == "Success") {
+                        }
+                        else if(json.Type == "Fail") {
+                        }
+                    }
+                });
+            });
+        };
+
+        function addBookMark() {
+            $("#divBookmark").show();
+        }
+
+        function closeDivBookmark() {
+            $("#divBookmark").hide();
+        }
+
+        function collapseTitle() {
+            $("#divContent").height($("#divContent").height() + $("#header_default").height());
+            $("#header_default").hide();
+            $("#btnCollapseTitle").hide();
+            $("#btnExpandTitle").show();
+        }
+
+        function expandTitle() {
+            $("#header_default").show();
+            $("#btnCollapseTitle").show();
+            $("#btnExpandTitle").hide();
+            $("#divContent").height($("#divContent").height() - $("#header_default").height());
+        }
+
+        function expand(obj) {
+            var table = $(".Header_OutLine");
+            var trSub = $(table).children("tbody").children("[name=trSub]");
+
+            var btn = $(obj).children().first();
+
+            if (trSub.length > 0) {
+                if (trSub[0].style.display == "none") {
+                    //btn.removeClass();
+                    //btn.addClass("fa fa-window-maximize");
+
+                    for (var i = 0; i < trSub.length; i++) {
+                        trSub[i].style.display = "table-row";
+                    }
+                } else {
+                    //btn.removeClass();
+                    //btn.addClass("fa fa-window-minimize");
+
+                    for (var i = 0; i < trSub.length; i++) {
+                        trSub[i].style.display = "none";
+                    }
+                }
+            }
+            $('#divContent').css({
+                'height': (($(window).height()) - ($("#dvAmendHistory").height() == null ? 105 : 135
+                    ) - $('#divHeader').height()) + 'px'
+            });
+
+        }
+
+        function hideMemo() {
+            
+            $("#divPostit").hide();
+        }
+
+        function hideShow() {
+            
+            $("#divPostit").show();
+        }
+
+        function moveText(text, col) {
+            var td;
+            if (col == "8" || col == "15") {
+                td = $('#divContent td').filter(function (idx, obj) {
+                    return $(this).text().indexOf(text) > -1;
+                });
+                $('#divContent').animate({ scrollTop: td.offset().top - 150 }, 100);
+            }
+            else if (col == "13") {
+                $('#divContent').animate({ scrollTop: $(".BorderBlack").offset().top - 120 }, 100);
+            }
+            else if (col == "14") {
+                td = $('#divContent h6').filter(function (idx, obj) {
+                    return $(this).text().indexOf(text) > -1;
+                });
+                $('#divContent').animate({ scrollTop: td.offset().top - 120 }, 100);
+            }
+            else if (col == "5" || col == "3" || col == "16a") {
+                td = $('#divContent td').filter(function (idx, obj) {
+                    return $(this).text().indexOf(text) > -1;
+                });
+                $('#divContent').animate({ scrollTop: $(".highlight").offset().top - 120 }, 100);
+            }
+            else {
+                td = $('#divContent td').filter(function(idx, obj) {
+                    return $(this).text().indexOf(text) > -1;
+                });
+                $('#divContent').animate({ scrollTop: td.offset().top - 120 }, 100);
+            }
+        }
+
+        function changeLanguage(localekey) {
+            
+	        if (localekey == 'en') {
+	            location.href = "/Functions/TreeView/View.aspx?Id=9520&LocaleKey=en";
+	        }
+	        else if (localekey == 'ko') {
+	            location.href = "/Functions/TreeView/View.aspx?Id=9520&LocaleKey=ko";
+	            showDialog();
+		    }
+		    else {
+		    }
+	        return false;
+	    }
+
+        function showDialog() {
+		    
+
+            if (getCookie("MessagePopup") != "true") {
+                jQuery.WebUtils.loc('/Dialogs/DialogLanguage.aspx', jQuery.extend({ win: window, w: 580, h: 350, sb: true, rs: true, wintype: 'dialogPopup' }));
+            }
+            
+        }
+
+
+        function getCookie(strName) {
+
+            var strArg = new String(strName + "=");
+            var nArgLen, nCookieLen, nEnd;
+            var i = 0, j;
+
+            nArgLen = strArg.length;
+            nCookieLen = document.cookie.length;
+
+            if (nCookieLen > 0) {
+                while (i < nCookieLen) {
+                    j = i + nArgLen;
+
+                    if (document.cookie.substring(i, j) == strArg) {
+                        nEnd = document.cookie.indexOf(";", j);
+
+                        if (nEnd == -1)
+                            nEnd = document.cookie.length;
+
+                        return unescape(document.cookie.substring(j, nEnd));
+                    }
+
+                    i = document.cookie.indexOf(" ", i) + 1;
+                    if (i == 0) break;
+                }
+            }
+
+            return ("");
+        }
+
+
+        function openReport() {
+            jQuery.WebUtils.loc("ErrorReport.aspx?Id=9520&LocaleKey=en", jQuery.extend({
+                    win: window,
+                    w: 1000,
+                    h: 800,
+                    rs: true,
+                    wintype: 'open'
+                }));
+                return false;
+        }
+
+        function openPrint() {
+            jQuery.WebUtils.loc('view.aspx?LocaleKey=en&Id=9520&IsPrint=true', jQuery.extend({
+                    win: window,
+                    w: 700,
+                    h: 1000,
+                    sb: true,
+                    rs: true,
+                    wintype: 'open'
+                }));
+            return false;
+        }
+
+        function openPdf() {
+            
+
+            location.href = 'view.aspx?LocaleKey=en&Id=9520&IsPrint=true';
+        }
+
+        function openEdit() {
+            jQuery.WebUtils.loc('/Admin/TreeEditor/Edit.aspx?Id=9520&LocaleKey=en', jQuery.extend({
+                win: window,
+                w: 1200,
+                h: 800,
+                sb: true,
+                rs: true,
+                wintype: 'open'
+            }));
+            return false;
+        }
+
+        function goToTop() {
+            $("#divContent").animate({ scrollTop: 0 }, "slow");
+        }
+
+        function dragEndPostit(img) {
+            var left = event.clientX - 80;
+            var top = event.clientY - 90;
+            //var img = event.currentTarget;
+            var postit = "#newPostIt_" + $(img)[0].id.replace(/imgPostIt_/gi, "");;
+
+            $(img).css("left", left);
+            $(img).css("top", top);
+            $(postit).css("left", left);
+            $(postit).css("top", top);
+
+        }
+
+        function downloadProcess() {
+            $('.fa-file-pdf-o').show();
+            $(".fa-stack-1x").each(function () { $(this).css("margin-left", "999px"); });
+            $("#ankPrint").removeClass("btn-circle-default");
+            $("#ankPrint").addClass("btn-circle-danger");
+        }
+    </script>
+
+    <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$PageHeaderContentPlaceHolder$RadScriptManager1', document.getElementById('aspnetForm'));
+Sys.WebForms.PageRequestManager.getInstance()._updateControls([], [], [], 90);
+//]]>
+</script>
+
+
+
+                   
+	        <table border="0" cellpadding="0" cellspacing="0">
+	            <colgroup><col><col width="10"><col></colgroup>
+	            <tbody><tr>
+					<td>           
+						
+
+	                </td>
+	                <td></td>
+	                <td>
+						
+	                </td>
+	            </tr>
+	        </tbody></table>
+            
+            
+			        
+        
+            
+    <input type="hidden" name="ctl00$PageInfoContentPlaceHolder$hdnNewMemoCnt" id="ctl00_PageInfoContentPlaceHolder_hdnNewMemoCnt" value="0">
+
+                      
+            
+
+        
+            
+
+                       
+            
+               
+        
+            
+    <input name="ctl00$BodyContentPlaceHolder$txtSearch" type="text" id="ctl00_BodyContentPlaceHolder_txtSearch" style="display:none">
+    
+    
+    <input type="hidden" name="ctl00$BodyContentPlaceHolder$hfCategoryTitle" id="ctl00_BodyContentPlaceHolder_hfCategoryTitle" value="SOLAS 1988 Amend / Chapter I (HSSC) / Reg. 7">
+    <div style="margin-left: 40px; margin-right: 40px; margin-top: 20px">
+        <article>
+            <div class="row">
+                <div class="col-lg-12">
+                      
+                    <div class="card card-primary card-block card-block-big" style="padding: 20px; margin-bottom: 0">  
+                        <table style="width:100%">
+                            <tbody><tr>
+                                <td>
+                                    
+
+<script type="text/javascript">
+
+	function OnClientSelectedIndexChanged(sender, args) {
+		var selectedItem = args.get_item();
+
+		if (selectedItem == false)
+			return false;
+
+		var id = selectedItem.get_value();
+
+		if (id == "")
+			return false;
+
+		jQuery.WebUtils.loc('/Functions/TreeView/View.aspx?Id=' + id + '&IsAmendment=True&LocaleKey=en', { w: 800, h: 800, wintype: '_self' });
+	}
+
+</script>
+
+<div id="dvAmendHistory" style="width:100%; height:30px; text-align:left;">
+
+<div id="ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlPreviousAmend" class="RadComboBox RadComboBox_Bootstrap" style="font-weight:bold;width:190px;white-space:normal;">
+	<!-- 2020.2.617.35 --><table summary="combobox" border="0" style="border-width:0;border-collapse:collapse;">
+		<tbody><tr class="rcbReadOnly">
+			<td class="rcbInputCell rcbInputCellLeft" style="width:100%;"><input name="ctl00$BodyContentPlaceHolder$NextPreviousControl$DdlPreviousAmend" type="text" class="rcbInput radPreventDecorate rcbEmptyMessage" id="ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlPreviousAmend_Input" value="Previous Amendment" readonly="readonly" style="font-weight:bold;" autocomplete="off"></td><td class="rcbArrowCell rcbArrowCellRight"><a id="ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlPreviousAmend_Arrow" style="overflow: hidden;display: block;position: relative;outline: none;">select</a></td>
+		</tr>
+	</tbody></table><div class="rcbSlide" style="z-index: 6000; display: none; width: 400px;"><div id="ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlPreviousAmend_DropDown" class="RadComboBoxDropDown RadComboBoxDropDown_Bootstrap " style="width: 400px;"><div class="rcbScroll rcbWidth"><ul class="rcbList"><li class="rcbItem">SOLAS 1988 Amend / Chapter I / Reg. 7</li></ul></div></div></div><input id="ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlPreviousAmend_ClientState" name="ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlPreviousAmend_ClientState" type="hidden" autocomplete="off">
+</div>
+
+&nbsp;
+
+<div id="ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlNextAmend" class="RadComboBox RadComboBox_Bootstrap" style="font-weight:bold;width:190px;white-space:normal;">
+	<table class="rcbDisabled" summary="combobox" border="0" style="border-width:0;border-collapse:collapse;">
+		<tbody><tr class="rcbReadOnly">
+			<td class="rcbInputCell rcbInputCellLeft" style="width:100%;"><input name="ctl00$BodyContentPlaceHolder$NextPreviousControl$DdlNextAmend" type="text" class="rcbInput radPreventDecorate rcbEmptyMessage" id="ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlNextAmend_Input" value="Next Amendment" readonly="readonly" disabled="disabled" style="font-weight:bold;" autocomplete="off"></td><td class="rcbArrowCell rcbArrowCellRight"><a id="ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlNextAmend_Arrow" style="overflow: hidden;display: block;position: relative;outline: none;">select</a></td>
+		</tr>
+	</tbody></table><div class="rcbSlide" style="z-index: 6000; display: none; width: 400px;"><div id="ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlNextAmend_DropDown" class="RadComboBoxDropDown RadComboBoxDropDown_Bootstrap " style="width: 400px;"><div class="rcbScroll rcbWidth"></div></div></div><input id="ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlNextAmend_ClientState" name="ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlNextAmend_ClientState" type="hidden" value="{&quot;logEntries&quot;:null,&quot;value&quot;:&quot;&quot;,&quot;text&quot;:&quot;&quot;,&quot;enabled&quot;:false,&quot;checkedIndices&quot;:[],&quot;checkedItemsTextOverflows&quot;:false}" autocomplete="off">
+</div>
+&nbsp;
+
+
+</div>
+                                </td>
+                                <td>                                             
+                                    <div id="divButton" style="float:right">
+                                        <div class="btn-group">
+                                            <button id="btnLan" type="button" class="btn btn-raised color-info btn-white btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <i class="glyphicon glyphicon-globe" style="margin-right:0.5rem; transform:translate(0, -3px)"></i>LANGUAGE
+                                                <div class="ripple-container"></div>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-info" style="margin-top:26px; min-width:113px;">
+                                              <li style="min-width:113px; font-size:12px">
+                                                <a href="javascript:void(0)" onclick="javascript:changeLanguage('en'); return false;" style="font-weight:600 ">English</a>
+                                              </li>
+                                              <li style="min-width:113px; font-size:12px; font-weight:600 ">
+                                                <a href="javascript:void(0)" onclick="javascript:changeLanguage('ko'); return false;" style="font-weight:600 ">Korean</a>
+                                              </li>
+                                            </ul>
+                                        </div>                                
+                                        <a id="btnExpand" href="javascript:void(0)" onclick="javascript:expand(this); return false;" class="btn btn-raised color-primary btn-white btn-xs">
+                                            <i class="glyphicon glyphicon-th-list" style="margin-right:0.5rem; transform:translate(0, -3px)"></i>HEADER
+                                        </a>
+                                        <a id="ankPrint" href="javascript:void(0);" onclick="javascript:openPdf(); return false;" class="btn btn-raised color-danger btn-white btn-xs">
+                                            <i class="fa fa-file-pdf-o" style="margin-right:0.5rem; transform:translate(0, -1px)"></i>PDF
+                                        <div class="ripple-container"></div></a>
+                                        <a id="ankMemo" href="javascript:void(0)" onclick="javascript:onMemoAdd(); return false;" class="btn btn-raised btn-white btn-xs" style="color:#f5c700">
+                                            <i class="fa fa-sticky-note" style="margin-right:0.5rem; transform:translate(0, -1px)"></i>MEMO
+                                        </a>
+        
+                                        <a href="javascript:void(0)" onclick="javascript:openReport(); return false;" class="btn btn-raised color-warning btn-white btn-xs">
+                                            <i class="fa fa-exclamation-triangle" style="margin-right:0.5rem; transform:translate(0, -1px)"></i>ERROR REPORT
+                                        </a>
+        
+                                        <a id="btnEdit" href="javascript:void(0)" onclick="javascript:openEdit(); return false;" class="btn btn-raised btn-white btn-xs" style="display: none;">
+                                            <i class="fa fa-edit" style="margin-right:0.5rem; "></i>EDIT <span style="color:fuchsia">(ADMIN)</span>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody></table>       
+                        <div class="Document" style="overflow-x: auto">
+                            <table border="0" cellpadding="4" cellspacing="0" style="width: 100%; vertical-align: top;">
+                                <tbody><tr>
+                                    <td valign="top">
+                                        <div id="divHeader">
+                                            <span id="ctl00_BodyContentPlaceHolder_lblHeader"><div class="headerInfo" id="header_default" style="font-family : Verdana, arial, helvetica, clean, sans-serif; margin-bottom: 20px">
+			<table cellpadding="4" cellspacing="0" class="Header_OutLine" width="100%" style="border: #dddddd solid 1px">
+					<tbody><tr name="trMain">
+						<td style="background-color: #eee; color: #424242 !important; font-weight:bold !important; width: 300px; border: #dddddd solid 1px" class="printHeader">
+							Title
+						</td>
+						<td style="border: #dddddd solid 1px" bgcolor="white" class="printHeader">SOLAS 1988 Amend / Chapter I (HSSC) / Reg. 7</td>
+					</tr>
+					<tr name="trMain">
+						<td style="background-color: #eee; color: #424242 !important; font-weight:bold !important; width: 300px; border: #dddddd solid 1px" class="printHeader">
+							Effective Date
+						</td>
+						<td style="border: #dddddd solid 1px" bgcolor="white" class="printHeader">2/3/2000</td>
+					</tr>
+					<tr id="trSub2" name="trSub" style="display:none">
+						<td style="background-color: #eee; color: #424242 !important; font-weight:bold !important; width: 300px; border: #dddddd solid 1px" class="printHeader">
+							For Ships Constructed
+						</td>
+						<td style="border: #dddddd solid 1px" bgcolor="white" class="printHeader"> On or after 2/3/2000</td>
+					</tr>
+					<tr id="trSub5" name="trSub" style="display:none">
+						<td style="background-color: #eee; color: #424242 !important; font-weight:bold !important; width: 300px; border: #dddddd solid 1px" class="printHeader">
+							Retroactive
+						</td>
+						<td style="border: #dddddd solid 1px" bgcolor="white" class="printHeader">Retroactive Requirement for Existing Ships.</td>
+					</tr></tbody></table></div></span>
+                                        </div>
+                                        <div id="divContent" style="overflow: hidden auto; padding: 10px; border-right: 1px solid rgb(221, 221, 221); border-bottom: 1px solid rgb(221, 221, 221); border-left: 1px solid rgb(221, 221, 221); border-image: initial; border-top: none; position: relative; margin-top: -20px; height: 638px;">
+                                            <br>
+
+                                            <span id="ctl00_BodyContentPlaceHolder_lblContent"><title></title>
+
+<h3 class="regulation">Regulation 7</h3>
+<h3 class="regulation">Surveys of passenger ships*</h3>
+<h6 class="footnote" align="justify">* Refer to Surveys and inspections of ro-ro passenger ships (<a href="UserCommonTreeRedirect.aspx?CATEGORY_ID=7272&amp;NODE_TYPE=Normal&amp;IS_LEAF=true&amp;IS_VIEWCHILD=true" target="_blank">resolution A.794(19)</a>, Guidelines for unscheduled inspections of ro-ro passenger ships by flag States (<a href="UserCommonTreeRedirect.aspx?CATEGORY_ID=12797&amp;NODE_TYPE=Normal&amp;IS_LEAF=true&amp;IS_VIEWCHILD=false" target="_blank">MSC/Circ.956</a>) and Guidelines for the assessment of technical provisions for the performance of an in-water survey in lieu of bottom inspection in dry-dock to permit one dry-dock examination in any five-year period for passenger ships other than ro-ro passenger ships (<a href="UserCommonTreeRedirect.aspx?CATEGORY_ID=51738&amp;NODE_TYPE=Normal&amp;IS_LEAF=true&amp;IS_VIEWCHILD=false" target="_blank">MSC.1/Circ.1348</a>).</h6>
+<h4 class="subtitle">(a) A passenger ship shall be subjected to the surveys specified below:</h4>
+<h5 class="body1">(i) an initial survey before the ship is put in service;</h5>
+<h5 class="body1">(ii) a renewal survey once every 12 months, except where regulation 14 (b), (e), (f) and (g) is applicable;</h5>
+<h5 class="body1">(iii) additional surveys, as occasion arises.</h5>
+<h4 class="subtitle">(b) The surveys referred to above shall be carried out as follows:</h4>
+<h5 class="body1">(i) the initial survey shall include a complete inspection of the ship's structure, machinery and equipment, including the outside of the ship's bottom and the inside and outside of the boilers. This survey shall be such as to ensure that the arrangements, materials and scantlings of the structure, boilers and other pressure vessels and their appurtenances, main and auxiliary machinery, electrical installation, radio installations including those used in life-saving appliances, fire protection, fire safety systems and appliances, life-saving appliances and arrangements, shipborne navigational equipment, nautical publications, means of embarkation for pilots and other equipment fully comply with the requirements of he present regulations, and of the laws, decrees, orders and regulations promulgated as a result thereof by the Administration for ships of the service for which it is intended. The survey shall also be such as to ensure that the workmanship of all parts of the ship and its equipment is in all respects satisfactory, and that the ship is provided with the lights, shapes, means of making sound signals and distress signals as required by the provisions of the present regulations and the International Regulations for Preventing Collisions at Sea in force;</h5>
+<h5 class="body1">(ii) the renewal survey shall include an inspection of the structure, boilers and other pressure vessels, machinery and equipment, including the outside of the ship's bottom. The survey shall be such as to ensure that the ship, as regards the structure, boilers and other pressure vessels and their appurtenances, main and auxiliary machinery, electrical installation, radio installations including those used in life-saving appliances, fire protection, fire safety systems and appliances, life-saving appliances and arrangements, shipborne navigational equipment, nautical publications, means of embarkation for pilots and other equipment is in satisfactory condition and is fit for the service for which it is intended, and that it complies with the requirements of the present regulations and of the laws, decrees, orders and regulations promulgated as a result thereof by the Administration. The lights, shapes, means of making sound signals and distress signals carried by the ship shall also be subject to the abovementioned survey for the purpose of ensuring that they comply with the requirements of the present regulations and of the International Regulation for Preventing Collisions at Sea in force;</h5>
+<h5 class="body1">(iii) an additional survey either general or partial, according to the circumstances, shall be made after a repair resulting from investigations prescribed in regulation 11, or whenever any important repairs or renewals are made. The survey shall be such as to ensure that the necessary repairs or renewals have been effectively made, that the material and workmanship of such repairs or renewals are in all respects satisfactory, and that the ship complies in all respects with the provisions of the present regulation and of the International Regulations for Preventing Collisions at Sea in force, and of the laws, decrees, orders and regulations promulgated as a result thereof by Administration;</h5>
+<h4 class="subtitle">(c) </h4>
+<h5 class="body1">(i) the laws, decrees, orders and regulations referred to in paragraph (b) of this regulation shall be in all respects such as to ensure that, from the point of view of safety of life, the ship is fit for the service for which it is intended;</h5>
+<h5 class="body1">(ii) they shall among other things prescribe the requirements to be observed as to the initial and subsequent hydraulic or other acceptable alternative tests to which the main and auxiliary boilers, connections, steam pipes, high pressure receivers and fuel tanks for internal combustion engines are to be submitted including the test procedures to be followed and the intervals between two consecutive tests.</h5></span>
+    
+                                             <div id="divPostit"></div>
+
+                                        </div>
+                                        
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                        
+                        <div style="position:absolute; left:45px; bottom:35px">
+                            <button id="decreaseFontBtn" style="padding:7px 0px 7px 10px" "="" class="btn btn-raised btn-xs"><i class="fa fa-minus"></i></button>
+                            <button id="percentBtn" style="padding:5px 7px 3px 7px" "="" class="btn btn-raised btn-xs">100%</button>
+                            <button id="increaseFontBtn" style="padding:7px 0px 7px 10px" class="btn btn-raised btn-xs"><i class="fa fa-plus"></i></button>
+                            <input id="hdnFontSize" type="hidden" value="100">
+                        </div>
+                        </div>
+                        <a id="btnGoToTop" href="javascript:void(0)" onclick="javascript:goToTop(); return false;" class="btn-circle btn-circle-raised btn-circle-primary btn-circle-sm tooltip-primary" data-toggle="tooltip" data-placement="top" title="" style="padding-top: 13px; position: fixed; bottom: 10px; right: 10px; display: none;" data-original-title="Top">
+                            <i class="zmdi zmdi-long-arrow-up"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+    <script type="text/javascript">
+
+        var html = $('#ctl00_BodyContentPlaceHolder_lblHeader').html();
+        function getHeightMargin() {
+            if (html == '') {
+                return 0;
+            } else {
+                var trs = html.replace('<tr>', '<TR>').split('<TR>').length - 1;
+                return trs * 35;
+            }
+        }
+        
+        $('#divContent').css({ 'height': (($(window).height()) - ($("#dvAmendHistory").height() == null ? 105 : 135) - $('#divHeader').height()) + 'px' });
+
+        $(window).resize(function () {
+            $('#divContent').css({ 'height': (($(window).height()) - ($("#dvAmendHistory").height() == null ? 105 : 135) - $('#divHeader').height()) + 'px' });
+        });
+
+
+    </script>
+    
+    <iframe id="iframePdf" onreadystatechange="downloadProcess()" style="display:none;">
+    </iframe>
+
+                      
+            
+       
+        
+        
+        </div>
+    
+
+<script type="text/javascript">
+//<![CDATA[
+window.__TsmHiddenField = $get('ctl00_PageHeaderContentPlaceHolder_RadScriptManager1_TSM');Sys.Application.initialize();
+
+var callBackFrameUrl='/WebResource.axd?d=mX7ul9mbczjuXecu4vOPIJXIIA4pefa5KEI29JUkgD6CfKdM9bBnKllXy62pIS6cdRPfRChb6ILmEqC8jfiEhMlsQlE1&t=638803284698914358';
+WebForm_InitCallback();Sys.Application.add_init(function() {
+    $create(Telerik.Web.UI.RadComboBox, {"_dropDownWidth":400,"_height":0,"_skin":"Bootstrap","_uniqueId":"ctl00$BodyContentPlaceHolder$NextPreviousControl$DdlPreviousAmend","clientStateFieldID":"ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlPreviousAmend_ClientState","collapseAnimation":"{\"duration\":1}","emptyMessage":"Previous Amendment","expandAnimation":"{\"duration\":1}","itemData":[{"value":"9495"}],"localization":"{\"AllItemsCheckedString\":\"All items checked\",\"ItemsCheckedString\":\"items checked\",\"CheckAllString\":\"Check All\"}"}, {"selectedIndexChanged":OnClientSelectedIndexChanged}, null, $get("ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlPreviousAmend"));
+});
+Sys.Application.add_init(function() {
+    $create(Telerik.Web.UI.RadComboBox, {"_dropDownWidth":400,"_height":0,"_skin":"Bootstrap","_uniqueId":"ctl00$BodyContentPlaceHolder$NextPreviousControl$DdlNextAmend","clientStateFieldID":"ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlNextAmend_ClientState","collapseAnimation":"{\"duration\":1}","emptyMessage":"Next Amendment","enabled":false,"expandAnimation":"{\"duration\":1}","itemData":[],"localization":"{\"AllItemsCheckedString\":\"All items checked\",\"ItemsCheckedString\":\"items checked\",\"CheckAllString\":\"Check All\"}"}, {"selectedIndexChanged":OnClientSelectedIndexChanged}, null, $get("ctl00_BodyContentPlaceHolder_NextPreviousControl_DdlNextAmend"));
+});
+//]]>
+</script>
+</form>
+    
+    <script src="/Customs/Styles/assets/js/plugins.min.js?t=639059001905480930"></script>
+    <script src="/Customs/Styles/assets/js/app.min.js?t=639059001905480930"></script>
+    <script src="/Commons/Scripts/WebUtils.js?t=639059001905480930" type="text/javascript"></script>
+    
+
+
+
+<div id="lightboxOverlay" class="lightboxOverlay" style="display: none;"></div><div id="lightbox" class="lightbox" style="display: none;"><div class="lb-outerContainer"><div class="lb-container"><img class="lb-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="><div class="lb-nav"><a class="lb-prev" href=""></a><a class="lb-next" href=""></a></div><div class="lb-loader"><a class="lb-cancel"></a></div></div></div><div class="lb-dataContainer"><div class="lb-data"><div class="lb-details"><span class="lb-caption"></span><span class="lb-number"></span></div><div class="lb-closeContainer"><a class="lb-close"></a></div></div></div></div></body></html>

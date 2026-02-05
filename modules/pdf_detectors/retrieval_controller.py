@@ -107,20 +107,81 @@ class PDFRetrievalController:
                 logger.info(f"     🔍 현재 URL: {current_url[:80]}")
             
             # 🆕 중복 로그인 대화상자 감지 및 처리
-            if "DialogExistLoginSession.aspx" in current_url:
+            if "DialogExistLoginSession" in current_url:
                 if self.log_attempts:
                     logger.warning(f"     ⚠️  중복 로그인 대화상자 감지 - 자동 처리")
                 try:
-                    # "예" 버튼 클릭 (기존 세션 종료하고 계속)
-                    confirm_button = WebDriverWait(self.driver, 5).until(
-                        EC.element_to_be_clickable((By.ID, "btnYes"))
-                    )
+                    if self.log_attempts:
+                        logger.info(f"     🔍 대화상자 HTML 분석 중...")
+                    
+                    # 여러 가능한 버튼 찾기
+                    button_selectors = [
+                        (By.ID, "ctl00_BodyContentPlaceHolder_lbtYes"),  # ⭐ 실제 ID
+                        (By.ID, "btnYes"),
+                        (By.ID, "Button1"),  # ASP.NET 기본
+                        (By.ID, "btnOK"),
+                        (By.ID, "btnConfirm"),
+                        (By.NAME, "btnYes"),
+                        (By.XPATH, "//a[contains(@onclick, 'lbtYesClick')]"),  # ⭐ onclick 함수
+                        (By.XPATH, "//a[contains(@class, 'MainButton')]"),  # ⭐ CSS 클래스
+                        (By.XPATH, "//input[@type='button' and contains(@value, '예')]"),
+                        (By.XPATH, "//input[@type='button' and contains(@value, 'Yes')]"),
+                        (By.XPATH, "//input[@type='button' and contains(@value, '확인')]"),
+                        (By.XPATH, "//input[@type='button' and contains(@value, 'OK')]"),
+                        (By.XPATH, "//input[@type='submit']"),
+                        (By.XPATH, "//button[contains(text(), '예')]"),
+                        (By.XPATH, "//button[contains(text(), 'Yes')]"),
+                        (By.XPATH, "//a[contains(text(), '예')]"),
+                        (By.XPATH, "//a[.//span[contains(text(), 'Yes')]]"),  # ⭐ span 안의 텍스트
+                        (By.CSS_SELECTOR, "input[value*='예']"),
+                    ]
+                    
+                    confirm_button = None
+                    for by_type, selector in button_selectors:
+                        try:
+                            confirm_button = WebDriverWait(self.driver, 2).until(
+                                EC.element_to_be_clickable((by_type, selector))
+                            )
+                            if self.log_attempts:
+                                logger.info(f"     ✅ 버튼 발견: {by_type}={selector}")
+                            break
+                        except:
+                            continue
+                    
+                    if not confirm_button:
+                        # 페이지 소스 저장 (디버깅용)
+                        import os
+                        debug_dir = "debug_output"
+                        os.makedirs(debug_dir, exist_ok=True)
+                        
+                        with open(f"{debug_dir}/duplicate_login_dialog.html", "w", encoding="utf-8") as f:
+                            f.write(self.driver.page_source)
+                        
+                        if self.log_attempts:
+                            logger.error(f"     ❌ 버튼을 찾을 수 없음 - HTML 저장: {debug_dir}/duplicate_login_dialog.html")
+                            
+                            # 모든 input/button 요소 출력
+                            all_buttons = self.driver.find_elements(By.XPATH, "//input | //button | //a")
+                            logger.info(f"     🔍 페이지의 모든 버튼/링크 ({len(all_buttons)}개):")
+                            for btn in all_buttons[:10]:  # 처음 10개만
+                                try:
+                                    tag = btn.tag_name
+                                    btn_id = btn.get_attribute('id') or 'None'
+                                    btn_value = btn.get_attribute('value') or 'None'
+                                    btn_text = btn.text or 'None'
+                                    logger.info(f"        - <{tag}> id={btn_id} value={btn_value} text={btn_text}")
+                                except:
+                                    pass
+                        
+                        return False
+                    
+                    # 버튼 클릭
                     confirm_button.click()
                     time.sleep(2)
-                    
                     if self.log_attempts:
                         logger.info(f"     ✅ 중복 로그인 대화상자 처리 완료")
                     return True
+                    
                 except Exception as e:
                     if self.log_attempts:
                         logger.error(f"     ❌ 대화상자 처리 실패: {e}")

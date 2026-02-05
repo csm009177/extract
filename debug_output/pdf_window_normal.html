@@ -1,0 +1,774 @@
+<html xmlns="http://www.w3.org/1999/xhtml" class="sb-init"><head id="ctl00_Head1"><title>
+	Article III
+</title><meta http-equiv="X-UA-Compatible" content="IE=Edge"><meta name="theme-color" content="#333"><meta http-equiv="Expires" content="-1"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Cache-Control" content="no-cache"><link rel="stylesheet" href="../../Customs/Styles/assets/css/preload.min.css"><link rel="stylesheet" href="../../Customs/Styles/assets/css/plugins.min.css"><link rel="stylesheet" href="../../Customs/Styles/assets/css/style.light-blue-500.min.css"><link rel="stylesheet" href="../../Customs/Styles/BootstrapCustom.css">
+    <style type="text/css">
+        
+        html, body {
+            height: 100%;
+        }
+    </style>
+    
+        <script src="/Commons/Scripts/jquery-1.7.1.min.js" type="text/javascript"></script>
+        <script src="/Customs/Scripts/krcon.js?t=639059006964026991" type="text/javascript"></script>
+        <script src="/Customs/Scripts/krcon.Frame.js?t=639059006964026991" type="text/javascript"></script>
+        <script src="/Customs/Scripts/krcon.WordSearch.js?t=639059006964026991" type="text/javascript"></script>
+        <script src="/Customs/Scripts/krcon.TreeAPI.js?t=639059006964026991" type="text/javascript"></script>
+        <script src="/Customs/Scripts/krcon.ValidateAPI.js?t=639059006964026991" type="text/javascript"></script>
+        <script src="/Customs/Scripts/krcon.Common.js?t=639059006964026991" type="text/javascript"></script>
+        <script src="/Customs/Scripts/krcon.AdminPageTool.js?t=639059006964026991" type="text/javascript"></script>
+        <script src="/Commons/Scripts/Common.js?t=639059006964026991" type="text/javascript"></script>
+        <script src="/Commons/Scripts/CustomValidationSummary.js?t=639059006964026991" type="text/javascript"></script>
+        <script src="/Commons/Scripts/StringUtils.js?t=639059006964026991" type="text/javascript"></script>
+        <script src="/Commons/Scripts/XmlUtils.js?t=639059006964026991" type="text/javascript"></script>
+        
+    
+
+	<script type="text/javascript">
+		window.onerror = function () { return true; }
+
+		$(function () {
+
+			$(".TextBox").keypress(function (e) {
+				if (e.keyCode == 13) {
+					eval($("a.SearchButton").attr("href"));
+				}
+			});
+
+			$(".MainButtonGroup [id$='Save']").click(function () {
+				try {
+					if (krcon.ValidateAPI.isValid() == false)
+						return false;
+
+					return krcon.Common.Submit.setSubmit(true);
+				}
+				catch (e) {
+				}
+			});
+
+			$(".MainButtonGroup [id$='Update']").click(function () {
+				try {
+					if (krcon.ValidateAPI.isValid() == false)
+						return false;
+
+					return krcon.Common.Submit.setSubmit(true);
+				}
+				catch (e) {
+				}
+			});
+
+			$(".MainButtonGroup [id$='Delete']").click(function () {
+				try {
+					if (krcon.Common.Submit.setSubmit(true) == false)
+						return false;
+
+					return confirm("포함된 하위 노드, 첨부파일 모두 삭제됩니다. \r\n삭제하시겠습니까?");
+				}
+				catch (e) {
+				}
+			});
+
+			$(window).mousemove(function (e) {
+			    if (parent.mouseState == "D") {
+			        parent.framePosition = e.pageX;
+			        parent.mouseLocation = "right";
+			        parent.$('body').trigger("mousemove");
+			    }
+			});
+
+			$(window).mouseup(function (e) {
+			    if (parent.mouseState == "D") {
+			        parent.$('body').trigger("mouseup");
+			    }
+            });
+
+		});
+	</script>
+<link rel="stylesheet" type="text/css" href="../../Customs/Scripts/GoogleApi/sunburst.css"></head>
+
+<body style="overflow: visible;">
+    <form name="aspnetForm" method="post" action="View.aspx?LocaleKey=en&amp;Id=8028" id="aspnetForm">
+<div>
+<input type="hidden" name="ctl00_PageHeaderContentPlaceHolder_RadScriptManager1_TSM" id="ctl00_PageHeaderContentPlaceHolder_RadScriptManager1_TSM" value=";;System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35:en-US:9da113d1-62cb-41a4-9573-c03cf93e060f:ea597d4b:b25378d2">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+<input type="hidden" name="__REAL_StatePersister" id="__REAL_StatePersister" value="RCL.Core.CachePageStatePersister">
+<input type="hidden" name="__REAL_VIEWSTATE" id="__REAL_VIEWSTATE" value="b7b4792f-868a-498b-9ca9-39e9a2974cac">
+<input type="hidden" name="__VIEWSTATE" id="
+__VIEWSTATE" value="">
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['aspnetForm'];
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=Jqt8ZUM2PsBT7iqo2bJsAMYqNghHoBdY5Cyqj9U1nfH66cMTn-AkgQgIi3Zg3Dl36hkI97aWgsz-HtwV33C2AkYJ1vY1&amp;t=638803284698914358" type="text/javascript"></script>
+
+
+<script src="/Telerik.Web.UI.WebResource.axd?_TSM_HiddenField_=ctl00_PageHeaderContentPlaceHolder_RadScriptManager1_TSM&amp;compress=1&amp;_TSM_CombinedScripts_=%3b%3bSystem.Web.Extensions%2c+Version%3d3.5.0.0%2c+Culture%3dneutral%2c+PublicKeyToken%3d31bf3856ad364e35%3aen-US%3a9da113d1-62cb-41a4-9573-c03cf93e060f%3aea597d4b%3ab25378d2" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+if (typeof(Sys) === 'undefined') throw new Error('ASP.NET Ajax client-side framework failed to load.');
+//]]>
+</script>
+
+<div>
+
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEWBAL+raDpAgKu0bWhAQLbpdLIAQKyt52vBUId58+yV+TynXzqCG/HXvC3EdQj">
+</div>
+        <div id="ms-preload" class="ms-preload" style="display: none;">
+          <div id="status" style="display: none;">
+            <div class="spinner">
+              <div class="dot1 bg-primary"></div>
+              <div class="dot2 bg-primary"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+            
+    <link href="../../Customs/Styles/contents.css" rel="stylesheet" type="text/css">
+    
+
+    <link rel="stylesheet" href="../../ClientConfig/PostItAll/libs/jquery-ui-1.10.0.custom.css">
+    
+    <link rel="stylesheet" href="../../ClientConfig/PostItAll/plugin/jquery.postitall.css">
+    
+
+    <script src="../../Commons/Scripts/jquery-ui.min.js"></script>
+    
+
+    
+
+    
+    <script src="../../ClientConfig/PostItAll/plugin/jquery.postitall.js"></script>
+
+    
+    
+    
+    <script type="text/javascript">
+        
+        $(document).ready(function () {
+            $(function () {
+                $('#divContent a[href]').attr('target', '_blank');
+            });
+
+            var table = $(".Header_OutLine");
+            var trSub = $(table).children("tbody").children("[name=trSub]");
+            if (trSub.length == 0) {
+                $("#btnExpand").hide();
+            }
+
+            if($("#ctl00_BodyContentPlaceHolder_lblHeader").text() == "") {
+                $("#divContent").css("margin-top", "0");
+            }
+
+            
+                $("#btnEdit").hide();
+            
+
+            if ("False" == "True") {
+                $("#ankMemo").hide();
+                $("#btnCollapseTitle").hide();
+                $("#btnExpandTitle").hide();
+            }
+
+            $.ajax( {
+                url: '/Generators/MemoHandler.ashx',
+                type: "POST",
+                async: true,
+                data: {
+                    CategoryId : "8028",
+                    Command : "L"
+                },
+                success: function(data) {
+                    var json = $.parseJSON(data);
+                    var list = json.$values;
+                    $.noConflict()(function (jq) {
+                        $.each(list, function (idx, item) {
+                            var obj = $('#ctl00_BodyContentPlaceHolder_lblContent').postitall({
+                                'textcolor': "#000000",
+                                'backgroundcolor': "#FFEF70",
+                                'description': item.Content,
+                                'newPostit': true,
+                                'position': "absolute",
+                                'autoheight': false,
+                                'removable': true,
+                                'changeoptions': true,
+                                'posX': item.PosTop,
+                                'posY': item.PosLeft,
+                                'height': item.Height - 30,
+                                'width': item.Width,
+                                'minHeight': 100,
+                                'minWidth': 120
+                            });
+
+                            var postit = $('#newPostIt_' + (idx + 1));
+                            var img = "<img id='imgPostIt_" + (idx + 1) + "' src='../../Images/memo.JPG' style='position:absolute; left:" + postit.css("left") + "; top:" + postit.css("top") + "; cursor:pointer; width:40px; height:40px' href='javascript:void(0)' ondblclick=\"javascript:expandPostit('" + (idx + 1) + "'); return false;\" ondragend=\"javascript:dragEndPostit(this); return false;\" />";
+                            postit.parent().append(img);
+                            postit.hide();
+                        });
+                    });
+                }
+            });
+
+            //$(".Header_OutLine").each(function (idx, obj) {
+            //    if ($(obj).children("tbody").children("[name=trSub]").length == 0) {
+            //        $("[name=btnExpand]")[idx].style.display = "none";
+            //    }
+            //});
+
+            $("#divContent").scroll(function () {
+                if ($('#divContent').scrollTop() > 0)
+                    $("#btnGoToTop").show();
+                else
+                    $("#btnGoToTop").hide();
+            });
+
+            $('#increaseFontBtn').click(function () {
+                var percent = parseInt($("#hdnFontSize").val());
+                var newpercent = percent + 10;
+
+                if (percent == 200) return false;
+
+                $("#hdnFontSize").val(newpercent);
+                var constant = newpercent / 100;
+                
+                var newSize = 13 * constant; // 폰트 크기를 2px 증가시킵니다.
+                $('#divContent').css('font-size', newSize + 'px'); // 새로운 폰트 크기를 설정합니다.
+                $("#percentBtn").text(newpercent + '%');
+                return false;
+            });
+
+            $('#decreaseFontBtn').click(function () {
+                var percent = parseInt($("#hdnFontSize").val());
+                var newpercent = percent - 10
+
+                if (percent == 50) return false;
+
+                $("#hdnFontSize").val(newpercent);
+                var constant = newpercent / 100;
+                
+                var newSize = 13 * constant; // 폰트 크기를 2px 감소시킵니다.
+                $('#divContent').css('font-size', newSize + 'px'); // 새로운 폰트 크기를 설정합니다.
+                $("#percentBtn").text(newpercent + '%');
+
+                return false;
+            });
+
+            $('#percentBtn').click(function () {
+                $("#hdnFontSize").val(100);
+                $('#divContent').css('font-size', '13px'); // 새로운 폰트 크기를 설정합니다.
+                $("#percentBtn").text('100%');
+
+                return false;
+            });
+
+        });
+
+        function OpenRefMaterialPopup (matId, textId) {
+            jQuery.WebUtils.loc('RefMaterialView.aspx?LocaleKey=en&CategoryTextId=' + textId + '&RefId=' + matId, jQuery.extend({ win: window,
+                w: 800,
+                h: 900,
+                sb: true,
+                rs: true,
+                wintype: 'open'
+            }));
+        }
+        
+        function clickmore() {
+            document.getElementById("singleline").style.display="none"; 
+            document.getElementById("multiline").style.display="block";
+        }
+
+        function clickcollapsed() {
+            document.getElementById("singleline").style.display="block"; 
+            document.getElementById("multiline").style.display="none";
+        }
+
+        function onMemoAdd() {
+            var cnt = parseInt($("#ctl00_PageInfoContentPlaceHolder_hdnNewMemoCnt").val());
+            
+            $('#ctl00_BodyContentPlaceHolder_lblContent').postitall({
+                    'textcolor': "#000000",
+                    'backgroundcolor': "#FFEF70",
+                    'description': "",
+                    'newPostit': true,
+                    'position': "absolute",
+                    'autoheight': false,
+                    'removable': true,
+                    'changeoptions': true,
+                    //            'posX'            : "150px",
+                    //            'posY'            : (parseInt($('#divPostit').css("width")) - 120).toString() + "px",
+                    'posX': (100 + cnt * 20) + "px",
+                    'posY': ($("#ctl00_BodyContentPlaceHolder_lblContent").width() - 150 - cnt * 20) + "px",
+                    'height': 100,
+                    'width': 120,
+                    'minHeight': 100,
+                    'minWidth': 120
+                });
+            $("#ctl00_PageInfoContentPlaceHolder_hdnNewMemoCnt").val(cnt + 1);
+        }
+
+        window.onbeforeunload = function (e) {
+
+            $.ajax( {
+                url: '/Generators/MemoHandler.ashx',
+                type: "POST",
+                async: true,
+                data: {
+                    CategoryId : "8028",
+                    Command : "D"
+                },
+                success: function(data) {
+                    var json = $.parseJSON(data);
+                    if(json.Type == "Success") {
+                    }
+                    else if(json.Type == "Fail") {
+                    }
+                }
+            });
+
+            $('div[id^="newPostIt_"]').each(function(idx, div) {
+                $.ajax( {
+                    url: '/Generators/MemoHandler.ashx',
+                    type: "POST",
+                    async: true,
+                    data: {
+                        CategoryId : "8028",
+                        Command : "S",
+                        PosTop : Math.round($(div).css("top").replace("px", "")),
+                        PosLeft : Math.round($(div).css("left").replace("px", "")),
+                        Width : parseInt($(div).css("width").replace("px", "")) + 10,
+                        Height : parseInt($(div).css("height").replace("px", "")) + 10,
+                        Content : $('div[id^="pia_editable_"]')[idx].innerHTML
+                    },
+                    success: function(data) {
+                        var json = $.parseJSON(data);
+                        if(json.Type == "Success") {
+                        }
+                        else if(json.Type == "Fail") {
+                        }
+                    }
+                });
+            });
+        };
+
+        function addBookMark() {
+            $("#divBookmark").show();
+        }
+
+        function closeDivBookmark() {
+            $("#divBookmark").hide();
+        }
+
+        function collapseTitle() {
+            $("#divContent").height($("#divContent").height() + $("#header_default").height());
+            $("#header_default").hide();
+            $("#btnCollapseTitle").hide();
+            $("#btnExpandTitle").show();
+        }
+
+        function expandTitle() {
+            $("#header_default").show();
+            $("#btnCollapseTitle").show();
+            $("#btnExpandTitle").hide();
+            $("#divContent").height($("#divContent").height() - $("#header_default").height());
+        }
+
+        function expand(obj) {
+            var table = $(".Header_OutLine");
+            var trSub = $(table).children("tbody").children("[name=trSub]");
+
+            var btn = $(obj).children().first();
+
+            if (trSub.length > 0) {
+                if (trSub[0].style.display == "none") {
+                    //btn.removeClass();
+                    //btn.addClass("fa fa-window-maximize");
+
+                    for (var i = 0; i < trSub.length; i++) {
+                        trSub[i].style.display = "table-row";
+                    }
+                } else {
+                    //btn.removeClass();
+                    //btn.addClass("fa fa-window-minimize");
+
+                    for (var i = 0; i < trSub.length; i++) {
+                        trSub[i].style.display = "none";
+                    }
+                }
+            }
+            $('#divContent').css({
+                'height': (($(window).height()) - ($("#dvAmendHistory").height() == null ? 105 : 135
+                    ) - $('#divHeader').height()) + 'px'
+            });
+
+        }
+
+        function hideMemo() {
+            
+            $("#divPostit").hide();
+        }
+
+        function hideShow() {
+            
+            $("#divPostit").show();
+        }
+
+        function moveText(text, col) {
+            var td;
+            if (col == "8" || col == "15") {
+                td = $('#divContent td').filter(function (idx, obj) {
+                    return $(this).text().indexOf(text) > -1;
+                });
+                $('#divContent').animate({ scrollTop: td.offset().top - 150 }, 100);
+            }
+            else if (col == "13") {
+                $('#divContent').animate({ scrollTop: $(".BorderBlack").offset().top - 120 }, 100);
+            }
+            else if (col == "14") {
+                td = $('#divContent h6').filter(function (idx, obj) {
+                    return $(this).text().indexOf(text) > -1;
+                });
+                $('#divContent').animate({ scrollTop: td.offset().top - 120 }, 100);
+            }
+            else if (col == "5" || col == "3" || col == "16a") {
+                td = $('#divContent td').filter(function (idx, obj) {
+                    return $(this).text().indexOf(text) > -1;
+                });
+                $('#divContent').animate({ scrollTop: $(".highlight").offset().top - 120 }, 100);
+            }
+            else {
+                td = $('#divContent td').filter(function(idx, obj) {
+                    return $(this).text().indexOf(text) > -1;
+                });
+                $('#divContent').animate({ scrollTop: td.offset().top - 120 }, 100);
+            }
+        }
+
+        function changeLanguage(localekey) {
+            
+	        if (localekey == 'en') {
+	            location.href = "/Functions/TreeView/View.aspx?Id=8028&LocaleKey=en";
+	        }
+	        else if (localekey == 'ko') {
+	            location.href = "/Functions/TreeView/View.aspx?Id=8028&LocaleKey=ko";
+	            showDialog();
+		    }
+		    else {
+		    }
+	        return false;
+	    }
+
+        function showDialog() {
+		    
+
+            if (getCookie("MessagePopup") != "true") {
+                jQuery.WebUtils.loc('/Dialogs/DialogLanguage.aspx', jQuery.extend({ win: window, w: 580, h: 350, sb: true, rs: true, wintype: 'dialogPopup' }));
+            }
+            
+        }
+
+
+        function getCookie(strName) {
+
+            var strArg = new String(strName + "=");
+            var nArgLen, nCookieLen, nEnd;
+            var i = 0, j;
+
+            nArgLen = strArg.length;
+            nCookieLen = document.cookie.length;
+
+            if (nCookieLen > 0) {
+                while (i < nCookieLen) {
+                    j = i + nArgLen;
+
+                    if (document.cookie.substring(i, j) == strArg) {
+                        nEnd = document.cookie.indexOf(";", j);
+
+                        if (nEnd == -1)
+                            nEnd = document.cookie.length;
+
+                        return unescape(document.cookie.substring(j, nEnd));
+                    }
+
+                    i = document.cookie.indexOf(" ", i) + 1;
+                    if (i == 0) break;
+                }
+            }
+
+            return ("");
+        }
+
+
+        function openReport() {
+            jQuery.WebUtils.loc("ErrorReport.aspx?Id=8028&LocaleKey=en", jQuery.extend({
+                    win: window,
+                    w: 1000,
+                    h: 800,
+                    rs: true,
+                    wintype: 'open'
+                }));
+                return false;
+        }
+
+        function openPrint() {
+            jQuery.WebUtils.loc('view.aspx?LocaleKey=en&Id=8028&IsPrint=true', jQuery.extend({
+                    win: window,
+                    w: 700,
+                    h: 1000,
+                    sb: true,
+                    rs: true,
+                    wintype: 'open'
+                }));
+            return false;
+        }
+
+        function openPdf() {
+            
+
+            location.href = 'view.aspx?LocaleKey=en&Id=8028&IsPrint=true';
+        }
+
+        function openEdit() {
+            jQuery.WebUtils.loc('/Admin/TreeEditor/Edit.aspx?Id=8028&LocaleKey=en', jQuery.extend({
+                win: window,
+                w: 1200,
+                h: 800,
+                sb: true,
+                rs: true,
+                wintype: 'open'
+            }));
+            return false;
+        }
+
+        function goToTop() {
+            $("#divContent").animate({ scrollTop: 0 }, "slow");
+        }
+
+        function dragEndPostit(img) {
+            var left = event.clientX - 80;
+            var top = event.clientY - 90;
+            //var img = event.currentTarget;
+            var postit = "#newPostIt_" + $(img)[0].id.replace(/imgPostIt_/gi, "");;
+
+            $(img).css("left", left);
+            $(img).css("top", top);
+            $(postit).css("left", left);
+            $(postit).css("top", top);
+
+        }
+
+        function downloadProcess() {
+            $('.fa-file-pdf-o').show();
+            $(".fa-stack-1x").each(function () { $(this).css("margin-left", "999px"); });
+            $("#ankPrint").removeClass("btn-circle-default");
+            $("#ankPrint").addClass("btn-circle-danger");
+        }
+    </script>
+
+    <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$PageHeaderContentPlaceHolder$RadScriptManager1', document.getElementById('aspnetForm'));
+Sys.WebForms.PageRequestManager.getInstance()._updateControls([], [], [], 90);
+//]]>
+</script>
+
+
+
+                   
+	        <table border="0" cellpadding="0" cellspacing="0">
+	            <colgroup><col><col width="10"><col></colgroup>
+	            <tbody><tr>
+					<td>           
+						
+
+	                </td>
+	                <td></td>
+	                <td>
+						
+	                </td>
+	            </tr>
+	        </tbody></table>
+            
+            
+			        
+        
+            
+    <input type="hidden" name="ctl00$PageInfoContentPlaceHolder$hdnNewMemoCnt" id="ctl00_PageInfoContentPlaceHolder_hdnNewMemoCnt" value="0">
+
+                      
+            
+
+        
+            
+
+                       
+            
+               
+        
+            
+    <input name="ctl00$BodyContentPlaceHolder$txtSearch" type="text" id="ctl00_BodyContentPlaceHolder_txtSearch" style="display:none">
+    
+    
+    <input type="hidden" name="ctl00$BodyContentPlaceHolder$hfCategoryTitle" id="ctl00_BodyContentPlaceHolder_hfCategoryTitle" value="SOLAS 1974 Convention / SOLAS 1974 Articles / Article III">
+    <div style="margin-left: 40px; margin-right: 40px; margin-top: 20px">
+        <article>
+            <div class="row">
+                <div class="col-lg-12">
+                      
+                    <div class="card card-primary card-block card-block-big" style="padding: 20px; margin-bottom: 0">  
+                        <table style="width:100%">
+                            <tbody><tr>
+                                <td>
+                                    
+                                </td>
+                                <td>                                             
+                                    <div id="divButton" style="float:right">
+                                        <div class="btn-group">
+                                            <button id="btnLan" type="button" class="btn btn-raised color-info btn-white btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <i class="glyphicon glyphicon-globe" style="margin-right:0.5rem; transform:translate(0, -3px)"></i>LANGUAGE
+                                                <div class="ripple-container"></div>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-info" style="margin-top:26px; min-width:113px;">
+                                              <li style="min-width:113px; font-size:12px">
+                                                <a href="javascript:void(0)" onclick="javascript:changeLanguage('en'); return false;" style="font-weight:600 ">English</a>
+                                              </li>
+                                              <li style="min-width:113px; font-size:12px; font-weight:600 ">
+                                                <a href="javascript:void(0)" onclick="javascript:changeLanguage('ko'); return false;" style="font-weight:600 ">Korean</a>
+                                              </li>
+                                            </ul>
+                                        </div>                                
+                                        <a id="btnExpand" href="javascript:void(0)" onclick="javascript:expand(this); return false;" class="btn btn-raised color-primary btn-white btn-xs" style="display: none;">
+                                            <i class="glyphicon glyphicon-th-list" style="margin-right:0.5rem; transform:translate(0, -3px)"></i>HEADER
+                                        </a>
+                                        <a id="ankPrint" href="javascript:void(0);" onclick="javascript:openPdf(); return false;" class="btn btn-raised color-danger btn-white btn-xs">
+                                            <i class="fa fa-file-pdf-o" style="margin-right:0.5rem; transform:translate(0, -1px)"></i>PDF
+                                        <div class="ripple-container"></div></a>
+                                        <a id="ankMemo" href="javascript:void(0)" onclick="javascript:onMemoAdd(); return false;" class="btn btn-raised btn-white btn-xs" style="color:#f5c700">
+                                            <i class="fa fa-sticky-note" style="margin-right:0.5rem; transform:translate(0, -1px)"></i>MEMO
+                                        </a>
+        
+                                        <a href="javascript:void(0)" onclick="javascript:openReport(); return false;" class="btn btn-raised color-warning btn-white btn-xs">
+                                            <i class="fa fa-exclamation-triangle" style="margin-right:0.5rem; transform:translate(0, -1px)"></i>ERROR REPORT
+                                        </a>
+        
+                                        <a id="btnEdit" href="javascript:void(0)" onclick="javascript:openEdit(); return false;" class="btn btn-raised btn-white btn-xs" style="display: none;">
+                                            <i class="fa fa-edit" style="margin-right:0.5rem; "></i>EDIT <span style="color:fuchsia">(ADMIN)</span>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody></table>       
+                        <div class="Document" style="overflow-x: auto">
+                            <table border="0" cellpadding="4" cellspacing="0" style="width: 100%; vertical-align: top;">
+                                <tbody><tr>
+                                    <td valign="top">
+                                        <div id="divHeader">
+                                            <span id="ctl00_BodyContentPlaceHolder_lblHeader"><div class="headerInfo" id="header_default" style="font-family : Verdana, arial, helvetica, clean, sans-serif; margin-bottom: 20px">
+			<table cellpadding="4" cellspacing="0" class="Header_OutLine" width="100%" style="border: #dddddd solid 1px">
+					<tbody><tr name="trMain">
+						<td style="background-color: #eee; color: #424242 !important; font-weight:bold !important; width: 300px; border: #dddddd solid 1px" class="printHeader">
+							Title
+						</td>
+						<td style="border: #dddddd solid 1px" bgcolor="white" class="printHeader">SOLAS 1974 Convention / SOLAS 1974 Articles / Article III</td>
+					</tr>
+					<tr name="trMain">
+						<td style="background-color: #eee; color: #424242 !important; font-weight:bold !important; width: 300px; border: #dddddd solid 1px" class="printHeader">
+							Effective Date
+						</td>
+						<td style="border: #dddddd solid 1px" bgcolor="white" class="printHeader">5/25/1980</td>
+					</tr></tbody></table></div></span>
+                                        </div>
+                                        <div id="divContent" style="overflow: hidden auto; padding: 10px; border-right: 1px solid rgb(221, 221, 221); border-bottom: 1px solid rgb(221, 221, 221); border-left: 1px solid rgb(221, 221, 221); border-image: initial; border-top: none; position: relative; margin-top: -20px; height: 668px;">
+                                            <br>
+
+                                            <span id="ctl00_BodyContentPlaceHolder_lblContent"><title></title>
+
+<h3 class="regulation">ARTICLE III</h3>
+<h3 class="regulation">Laws, Regulations</h3>
+<h4 class="subtitle">The Contracting Governments undertake to communicate to and deposit with the Secretary-General of the Inter-Governmental Maritime Consultative Organization (hereinafter referred to as "the Organization"):</h4>
+<h5 class="body1">(a) a list of non-governmental agencies which are authorized to act in their behalf in the administration of measures for safety of life at sea for circulation to the Contracting Governments for the information of their officers;</h5>
+<h5 class="body1">(b) the text of laws, decrees, orders and regulations which shall have been promulgated on the various matters within the scope of the present Convention;</h5>
+<h5 class="body1">(c) a sufficient number of specimens of their Certificates issued under the provisions of the present Convention for circulation to the Contracting Governments for the information of their officers.</h5></span>
+    
+                                             <div id="divPostit"></div>
+
+                                        </div>
+                                        
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                        
+                        <div style="position:absolute; left:45px; bottom:35px">
+                            <button id="decreaseFontBtn" style="padding:7px 0px 7px 10px" "="" class="btn btn-raised btn-xs"><i class="fa fa-minus"></i></button>
+                            <button id="percentBtn" style="padding:5px 7px 3px 7px" "="" class="btn btn-raised btn-xs">100%</button>
+                            <button id="increaseFontBtn" style="padding:7px 0px 7px 10px" class="btn btn-raised btn-xs"><i class="fa fa-plus"></i></button>
+                            <input id="hdnFontSize" type="hidden" value="100">
+                        </div>
+                        </div>
+                        <a id="btnGoToTop" href="javascript:void(0)" onclick="javascript:goToTop(); return false;" class="btn-circle btn-circle-raised btn-circle-primary btn-circle-sm tooltip-primary" data-toggle="tooltip" data-placement="top" title="" style="padding-top: 13px; position: fixed; bottom: 10px; right: 10px; display: none" data-original-title="Top">
+                            <i class="zmdi zmdi-long-arrow-up"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+    <script type="text/javascript">
+
+        var html = $('#ctl00_BodyContentPlaceHolder_lblHeader').html();
+        function getHeightMargin() {
+            if (html == '') {
+                return 0;
+            } else {
+                var trs = html.replace('<tr>', '<TR>').split('<TR>').length - 1;
+                return trs * 35;
+            }
+        }
+        
+        $('#divContent').css({ 'height': (($(window).height()) - ($("#dvAmendHistory").height() == null ? 105 : 135) - $('#divHeader').height()) + 'px' });
+
+        $(window).resize(function () {
+            $('#divContent').css({ 'height': (($(window).height()) - ($("#dvAmendHistory").height() == null ? 105 : 135) - $('#divHeader').height()) + 'px' });
+        });
+
+
+    </script>
+    
+    <iframe id="iframePdf" onreadystatechange="downloadProcess()" style="display:none;">
+    </iframe>
+
+                      
+            
+       
+        
+        
+        </div>
+    
+
+<script type="text/javascript">
+//<![CDATA[
+window.__TsmHiddenField = $get('ctl00_PageHeaderContentPlaceHolder_RadScriptManager1_TSM');Sys.Application.initialize();
+//]]>
+</script>
+</form>
+    
+    <script src="/Customs/Styles/assets/js/plugins.min.js?t=639059006964026991"></script>
+    <script src="/Customs/Styles/assets/js/app.min.js?t=639059006964026991"></script>
+    <script src="/Commons/Scripts/WebUtils.js?t=639059006964026991" type="text/javascript"></script>
+    
+
+
+
+<div id="lightboxOverlay" class="lightboxOverlay" style="display: none;"></div><div id="lightbox" class="lightbox" style="display: none;"><div class="lb-outerContainer"><div class="lb-container"><img class="lb-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="><div class="lb-nav"><a class="lb-prev" href=""></a><a class="lb-next" href=""></a></div><div class="lb-loader"><a class="lb-cancel"></a></div></div></div><div class="lb-dataContainer"><div class="lb-data"><div class="lb-details"><span class="lb-caption"></span><span class="lb-number"></span></div><div class="lb-closeContainer"><a class="lb-close"></a></div></div></div></div></body></html>

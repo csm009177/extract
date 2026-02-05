@@ -129,7 +129,7 @@ def check_and_relogin(driver):
     try:
         current_url = driver.current_url
         
-        # 🆕 중복 로그인 대화상자 처리
+        # 🆕 중복 로그인 대화상자 처리 (여러 선택자 시도)
         if "DialogExistLoginSession" in current_url:
             logger.warning(f"⚠️  중복 로그인 대화상자 감지 - 자동 처리")
             try:
@@ -137,13 +137,55 @@ def check_and_relogin(driver):
                 from selenium.webdriver.support.ui import WebDriverWait
                 from selenium.webdriver.support import expected_conditions as EC
                 
-                confirm_button = WebDriverWait(driver, 5).until(
-                    EC.element_to_be_clickable((By.ID, "btnYes"))
-                )
+                # 여러 버튼 선택자 시도
+                button_selectors = [
+                    (By.ID, "ctl00_BodyContentPlaceHolder_lbtYes"),  # ⭐ 실제 ID
+                    (By.ID, "btnYes"),
+                    (By.ID, "Button1"),
+                    (By.ID, "btnOK"),
+                    (By.NAME, "btnYes"),
+                    (By.XPATH, "//a[contains(@onclick, 'lbtYesClick')]"),  # ⭐ onclick 함수
+                    (By.XPATH, "//a[contains(@class, 'MainButton')]"),  # ⭐ CSS 클래스
+                    (By.XPATH, "//a[.//span[contains(text(), 'Yes')]]"),  # ⭐ span 안의 텍스트
+                    (By.XPATH, "//input[@type='button' and contains(@value, '예')]"),
+                    (By.XPATH, "//input[@type='button' and contains(@value, 'Yes')]"),
+                    (By.XPATH, "//input[@type='submit']"),
+                    (By.CSS_SELECTOR, "input[value*='예']"),
+                ]
+                
+                confirm_button = None
+                for by_type, selector in button_selectors:
+                    try:
+                        confirm_button = WebDriverWait(driver, 2).until(
+                            EC.element_to_be_clickable((by_type, selector))
+                        )
+                        logger.info(f"   ✅ 버튼 발견: {by_type}={selector}")
+                        break
+                    except:
+                        continue
+                
+                if not confirm_button:
+                    logger.error(f"   ❌ 모든 버튼 선택자 실패")
+                    
+                    # 디버깅: 모든 버튼 출력
+                    all_buttons = driver.find_elements(By.XPATH, "//input | //button")
+                    logger.info(f"   🔍 페이지의 모든 버튼 ({len(all_buttons)}개):")
+                    for btn in all_buttons[:5]:
+                        try:
+                            tag = btn.tag_name
+                            btn_id = btn.get_attribute('id') or 'None'
+                            btn_value = btn.get_attribute('value') or 'None'
+                            logger.info(f"      <{tag}> id={btn_id} value={btn_value}")
+                        except:
+                            pass
+                    
+                    return False
+                
                 confirm_button.click()
                 time.sleep(2)
                 logger.info(f"✅ 대화상자 처리 완료")
                 return True
+                
             except Exception as e:
                 logger.error(f"❌ 대화상자 처리 실패: {e}")
                 return False

@@ -229,3 +229,49 @@ def smart_login(driver):
     
     # 로그인 실행
     return login_to_krcon(driver)
+
+def check_and_relogin(driver):
+    """세션 확인 및 필요시 재로그인"""
+    try:
+        current_url = driver.current_url
+        
+        # 중복 로그인 대화상자 처리
+        if "DialogExistLoginSession" in current_url:
+            logger.warning("⚠️  중복 로그인 대화상자 감지 - 자동 처리")
+            
+            # 여러 선택자 시도
+            selectors = [
+                (By.ID, "btnYes"),
+                (By.ID, "Button1"),  # ASP.NET 기본 버튼
+                (By.ID, "btnOK"),
+                (By.XPATH, "//input[@type='button']"),
+                (By.XPATH, "//input[@type='submit']"),
+                (By.CSS_SELECTOR, "input[value*='예']"),
+                (By.CSS_SELECTOR, "input[value*='Yes']"),
+            ]
+            
+            for by, selector in selectors:
+                try:
+                    button = WebDriverWait(driver, 3).until(
+                        EC.element_to_be_clickable((by, selector))
+                    )
+                    button.click()
+                    logger.info(f"   ✅ 버튼 클릭 성공: {by}={selector}")
+                    time.sleep(2)
+                    break
+                except:
+                    continue
+            else:
+                logger.error("   ❌ 모든 버튼 선택자 실패")
+                return False
+        
+        # 로그인 페이지 확인
+        if "login" in current_url.lower():
+            logger.warning("⚠️  세션 만료 감지 - 재로그인 시도")
+            return smart_login(driver)
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"❌ 세션 확인 실패: {e}")
+        return False
