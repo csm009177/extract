@@ -6,6 +6,10 @@ PDF 버튼 찾기 로직
 """
 
 import logging
+import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 from .strategies.button_strategies import BUTTON_STRATEGY_REGISTRY, BUTTON_STRATEGY_ORDER
 
 logger = logging.getLogger(__name__)
@@ -30,17 +34,35 @@ class ButtonFinder:
             logger.info(f"  🔍 Button Finder 초기화")
             logger.info(f"     - 등록된 전략: {len(BUTTON_STRATEGY_REGISTRY)}개")
     
-    def find(self, strategy="auto"):
+    def find(self, strategy="auto", wait_for_page=True, max_wait=10):
         """
         PDF 버튼 찾기
         
         Args:
             strategy: str - 전략 이름 또는 프리셋
+            wait_for_page: bool - 페이지 로딩 대기 여부
+            max_wait: int - 최대 대기 시간 (초)
         
         Returns:
             WebElement 또는 None
         """
+        # 1. 페이지 로딩 대기 (타이밍 이슈 대비)
+        if wait_for_page:
+            try:
+                WebDriverWait(self.driver, max_wait).until(
+                    lambda d: d.execute_script("return document.readyState") == "complete"
+                )
+                time.sleep(1)  # 추가 안전 대기
+                if self.log_attempts:
+                    logger.info(f"  ⏳ 페이지 로딩 완료")
+            except Exception as e:
+                if self.log_attempts:
+                    logger.warning(f"  ⚠️  페이지 로딩 대기 실패: {e}")
+        
         strategy = str(strategy).lower()
+        
+        # 2. 팝업/경고창 처리 (팝업 이슈 대비)
+        self._close_popups()
         
         # 전략 리스트 결정
         if strategy == "auto" or strategy not in self.PRESET_STRATEGIES:
@@ -93,3 +115,31 @@ class ButtonFinder:
             logger.warning(f"  ⚠️  PDF 버튼을 찾을 수 없습니다")
         
         return None
+    
+    def _close_popups(self):
+        """팝업/경고창 자동 닫기 (팝업 이슈 대비)"""
+        try:
+            # Alert 처리
+            alert = self.driver.switch_to.alert
+            alert.accept()
+            if self.log_attempts:
+                logger.info(f"  ✅ Alert 창 닫음")
+        except:
+            pass  # Alert 없으면 무시
+        
+        try:
+            # 일반 팝업 처리 (새 창)
+            windows = self.driver.window_handles
+            if len(windows) > 1:
+                # 원본 창 저장
+                original = windows[0]
+                # 팝업 닫기
+                for window in windows[1:]:
+                    self.driver.switch_to.window(window)
+                    self.driver.close()
+                    if self.log_attempts:
+                        logger.info(f"  ✅ 팝업 창 닫음")
+                # 원본 창으로 복귀
+                self.driver.switch_to.window(original)
+        except:
+            pass  # 오류 무시

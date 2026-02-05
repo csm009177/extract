@@ -124,6 +124,30 @@ def save_progress(index, total):
     except Exception as e:
         logger.error(f"진행 상황 저장 실패: {e}")
 
+def check_and_relogin(driver):
+    """세션 확인 및 필요시 재로그인 (세션 만료 대비)"""
+    try:
+        current_url = driver.current_url
+        
+        # 로그인 페이지로 리다이렉트되었는지 확인
+        if "login" in current_url.lower() or "logon" in current_url.lower():
+            logger.warning(f"⚠️  세션 만료 감지 - 재로그인 시도")
+            
+            from modules.auth import login_to_krcon
+            if login_to_krcon(driver):
+                logger.info(f"✅ 재로그인 성공")
+                return True
+            else:
+                logger.error(f"❌ 재로그인 실패")
+                return False
+        
+        return True  # 세션 정상
+    
+    except Exception as e:
+        logger.warning(f"⚠️  세션 확인 중 오류: {e}")
+        return True  # 오류 시 일단 통과
+
+
 def download_pdf_files(driver, node, folder_path):
     """
     PDF 파일 다운로드 (Retrieval 아키텍처)
@@ -168,6 +192,11 @@ def download_node(driver, node, retry_count=0):
     
     try:
         rate_limit()
+        
+        # 세션 확인 및 재로그인 (세션 만료 대비)
+        if not check_and_relogin(driver):
+            logger.error(f"  ❌ 재로그인 실패: {node_name}")
+            return (False, 0)
         
         folder_path = os.path.join(BASE_DIR, node.get('path', safe_name(node_name)))
         os.makedirs(folder_path, exist_ok=True)

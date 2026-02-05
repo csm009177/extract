@@ -23,7 +23,7 @@ class PDFRetrievalController:
             logger.info(f"  🎯 PDF Retrieval Controller 초기화")
             logger.info(f"     - 등록된 회수 전략: {len(DOWNLOAD_STRATEGY_REGISTRY)}개")
     
-    def download(self, folder_path, filename, node_name="Unknown"):
+    def download(self, folder_path, filename, node_name="Unknown", check_session=True):
         """
         PDF 다운로드 (3가지 retrieval 방식 순차 시도)
         
@@ -31,10 +31,18 @@ class PDFRetrievalController:
             folder_path: 저장 폴더 경로
             filename: 파일명
             node_name: 노드 이름 (로그용)
+            check_session: bool - 세션 확인 여부
         
         Returns:
             str: 저장된 파일 경로 또는 None
         """
+        # 세션 확인 (세션 만료 대비)
+        if check_session:
+            if not self._check_session():
+                if self.log_attempts:
+                    logger.error(f"  ❌ 세션 만료 - 재로그인 필요")
+                return None
+        
         if self.log_attempts:
             logger.info(f"  🔍 PDF 다운로드 시도: {node_name}")
             logger.info(f"     - 저장 경로: {folder_path}/{filename}")
@@ -73,3 +81,31 @@ class PDFRetrievalController:
         if self.log_attempts:
             logger.error(f"  ❌ 모든 retrieval 전략 실패")
         return None
+    
+    def _check_session(self):
+        """세션 유효성 확인 (세션 만료 대비)"""
+        try:
+            # 현재 URL 확인
+            current_url = self.driver.current_url
+            
+            # 로그인 페이지로 리다이렉트되었는지 확인
+            if "login" in current_url.lower() or "logon" in current_url.lower():
+                return False
+            
+            # 세션 쿠키 확인
+            cookies = self.driver.get_cookies()
+            session_cookie = None
+            for cookie in cookies:
+                if "session" in cookie['name'].lower() or "auth" in cookie['name'].lower():
+                    session_cookie = cookie
+                    break
+            
+            if not session_cookie:
+                return False
+            
+            return True
+        
+        except Exception as e:
+            if self.log_attempts:
+                logger.warning(f"  ⚠️  세션 확인 실패: {e}")
+            return True  # 확인 실패 시 일단 통과
