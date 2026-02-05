@@ -6,29 +6,73 @@ KR-CON 사이트의 콘텐츠를 자동으로 수집하고 다운로드하는 �
 
 ```
 extract/
-├── run.py              # 🎯 메인 진입점
-├── modules/            # 📦 핵심 모듈
-│   ├── __init__.py
-│   ├── auth.py         # 로그인 관리
-│   ├── tree_collector.py  # 트리 구조 수집
-│   ├── status.py       # 다운로드 상태 확인
-│   ├── pdf_detectors.py   # 🆕 PDF 버튼 탐지 (8가지 전략)
-│   └── PDF_DETECTORS_README.md  # 📖 PDF 탐지 모듈 가이드
-├── tools/              # 🔧 디버깅 도구
-│   ├── inspect_page.py # 페이지 구조 분석
-│   └── test_pdf_detectors.py  # 🆕 PDF 탐지 전략 테스트
-├── output/             # 📂 결과물
-│   ├── downloads/      # 다운로드된 HTML/PDF
-│   ├── inspect_results/  # 페이지 분석 결과
+├── run.py                  # 🎯 메인 진입점
+├── requirements.txt        # Python 패키지
+├── README.md              # 📖 프로젝트 가이드
+│
+├── modules/               # 📦 핵심 모듈
+│   ├── auth.py           # 로그인 관리
+│   ├── tree_collector.py # 트리 구조 수집
+│   ├── status.py         # 다운로드 상태 확인
+│   └── pdf_detectors/    # 🆕 PDF 다운로드 모듈 (리팩토링 완료)
+│       ├── __init__.py              # Public API (find_pdf_button, download_pdf)
+│       ├── button_finder.py         # 버튼 찾기 (8가지 전략)
+│       ├── detector_controller.py   # 다운로드 컨트롤러 (상황 분석 → 전략 선택)
+│       ├── utils.py                 # 유틸리티
+│       ├── README.md                # 📖 PDF 탐지 모듈 가이드
+│       └── strategies/
+│           ├── detector_cdp.py      # CDP로 Blob URL 다운로드
+│           ├── detector_network.py  # requests로 직접 URL 다운로드
+│           ├── detector_download.py # 다운로드 폴더 모니터링
+│           └── button_strategies/   # 8개 버튼 검색 전략
+│               ├── by_id.py
+│               ├── by_fontawesome.py
+│               ├── by_onclick.py
+│               ├── by_btn_group.py
+│               ├── by_text.py
+│               ├── by_sibling.py
+│               ├── by_javascript.py
+│               └── by_css.py
+│
+├── tools/                 # 🔧 디버깅 & 테스트 도구
+│   ├── inspect_page.py   # 페이지 구조 분석
+│   ├── test_pdf_detectors.py        # PDF 탐지 전략 테스트
+│   └── verify_new_architecture.py   # 리팩토링 검증 스크립트
+│
+├── docs/                  # 📚 문서
+│   └── REFACTORING_COMPLETE_FINAL.md  # 리팩토링 완료 가이드
+│
+├── output/                # 📂 결과물
+│   ├── downloads/        # 다운로드된 HTML/PDF
 │   ├── tree_structure.json
 │   └── download_progress.json
-├── logs/               # 📝 로그 파일
-│   ├── crawler.log
-│   ├── download.log
-│   └── failed_downloads.log
-├── .env                # 환경 변수 (로그인 정보)
-└── requirements.txt    # Python 패키지
+│
+└── logs/                  # 📝 로그 파일
+    ├── crawler.log
+    ├── download.log
+    └── failed_downloads.log
 ```
+
+## 🆕 PDF Detectors 아키텍처 (2026.02.05 리팩토링 완료)
+
+**버튼 찾기와 PDF 다운로드 로직을 분리한 새로운 아키텍처:**
+
+```python
+from modules.pdf_detectors import find_pdf_button, download_pdf
+
+# 1단계: 버튼 찾기 (8가지 전략 자동 시도)
+button = find_pdf_button(driver)
+
+# 2단계: PDF 다운로드 (상황 분석 후 최적 전략 자동 선택)
+path = download_pdf(driver, button, "/output", "file.pdf")
+```
+
+**다운로드 전략 (자동 선택):**
+- `detector_cdp`: Blob URL → CDP `Page.printToPDF`
+- `detector_network`: 직접 PDF URL → `requests.get()`
+- `detector_download`: 브라우저 다운로드 폴더 모니터링
+
+📖 **상세 가이드**: `docs/REFACTORING_COMPLETE_FINAL.md`
 
 ## 🚀 사용 방법
 
