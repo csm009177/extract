@@ -3,26 +3,29 @@
 """
 PDF Detectors 모듈 - 진입점
 - find_pdf_button: PDF 버튼 찾기 (8가지 버튼 전략 사용)
-- download_pdf: PDF 다운로드 (3가지 다운로드 전략 자동 선택)
+- download_pdf: PDF 다운로드 (3가지 retrieval 전략 자동 선택)
 
 Usage:
     from modules.pdf_detectors import find_pdf_button, download_pdf
     
-    # 1단계: 버튼 찾기
+    # 1단계: 버튼 찾기 (선택사항 - download_pdf가 내부에서 자동 처리)
     button = find_pdf_button(driver)
     
-    # 2단계: PDF 다운로드
-    path = download_pdf(driver, button, "/output", "test.pdf")
+    # 2단계: PDF 다운로드 (3가지 retrieval 방식 자동 시도)
+    path = download_pdf(driver, "/output", "test.pdf")
 """
 
 from .button_finder import ButtonFinder
-from .detector_controller import PDFDetectorController
+from .retrieval_controller import PDFRetrievalController
 from .utils import get_button_info, validate_button
 
 
 def find_pdf_button(driver, strategy="auto", log_attempts=True):
     """
     PDF 버튼 찾기 (8가지 버튼 전략 사용)
+    
+    NOTE: download_pdf()가 내부에서 자동으로 버튼을 찾으므로,
+          이 함수를 직접 호출할 필요는 없습니다.
     
     Args:
         driver: Selenium WebDriver
@@ -36,34 +39,26 @@ def find_pdf_button(driver, strategy="auto", log_attempts=True):
     Returns:
         WebElement: 찾은 PDF 버튼
         None: 버튼을 찾지 못함
-    
-    Examples:
-        >>> # 기본 사용
-        >>> button = find_pdf_button(driver)
-        
-        >>> # 빠른 모드
-        >>> button = find_pdf_button(driver, strategy="fast")
-        
-        >>> # 특정 전략
-        >>> button = find_pdf_button(driver, strategy="id")
     """
     finder = ButtonFinder(driver, log_attempts)
     return finder.find(strategy)
 
 
-def download_pdf(driver, button, folder_path, filename, node_name="Unknown", log_attempts=True):
+def download_pdf(driver, folder_path, filename, node_name="Unknown", log_attempts=True):
     """
-    PDF 다운로드 (상황 분석 → 자동 전략 선택)
+    PDF 다운로드 (3가지 retrieval 방식 자동 시도)
     
-    Controller가 상황을 분석:
-        - 새 창 열림? Blob URL? PDF URL?
-        → detector_cdp (CDP Page.printToPDF)
-        → detector_network (requests.get)
-        → detector_download (다운로드 폴더 모니터링)
+    Controller가 순차적으로 시도:
+        [1/3] retrieval_cdp 시도...
+              ├─ 버튼 찾기: 성공 (내부에서 자동 처리)
+              ├─ 버튼 클릭: 완료
+              ├─ 새 창 감지: blob:...
+              └─ CDP 저장: 성공 ✅
+        
+        (성공하면 다음 전략 시도 안 함)
     
     Args:
         driver: Selenium WebDriver
-        button: WebElement - PDF 버튼
         folder_path: str - 저장 폴더 경로
         filename: str - 파일명 (예: "example.pdf")
         node_name: str - 노드 이름 (로그용)
@@ -74,12 +69,14 @@ def download_pdf(driver, button, folder_path, filename, node_name="Unknown", log
         None: 다운로드 실패
     
     Examples:
-        >>> button = find_pdf_button(driver)
-        >>> path = download_pdf(driver, button, "/output", "test.pdf")
-        INFO: ✅ [detector_cdp] Blob URL 다운로드 성공: /output/test.pdf
+        >>> path = download_pdf(driver, "/output", "test.pdf")
+        INFO: [1/3] retrieval_cdp 시도...
+        INFO:   ├─ 버튼 찾기: 성공
+        INFO:   ├─ 버튼 클릭: 완료
+        INFO:   └─ CDP 저장: 성공 (12,345 bytes)
     """
-    controller = PDFDetectorController(driver, log_attempts)
-    return controller.download(button, folder_path, filename, node_name)
+    controller = PDFRetrievalController(driver, log_attempts)
+    return controller.download(folder_path, filename, node_name)
 
 
 # Public API

@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 # 모듈 import
 from modules.auth import login_to_krcon, ensure_logged_in
 from modules.tree_collector import collect_tree_structure
-from modules.pdf_detectors import find_pdf_button, download_pdf, get_button_info
+from modules.pdf_detectors import download_pdf
 
 # 환경 변수 로드
 load_dotenv()
@@ -126,30 +126,21 @@ def save_progress(index, total):
 
 def download_pdf_files(driver, node, folder_path):
     """
-    PDF 파일 다운로드 (새로운 아키텍처)
+    PDF 파일 다운로드 (Retrieval 아키텍처)
     
-    1단계: find_pdf_button() - 8가지 버튼 전략으로 버튼 찾기
-    2단계: download_pdf() - 상황 분석 후 적절한 다운로드 전략 자동 선택
-           - detector_cdp: Blob URL → CDP Page.printToPDF
-           - detector_network: 직접 PDF URL → requests.get()
-           - detector_download: 다운로드 폴더 모니터링
+    download_pdf()가 자동으로 처리:
+        [1/3] retrieval_cdp 시도...
+              ├─ 버튼 찾기: 성공 (내부 자동)
+              ├─ 버튼 클릭: 완료
+              └─ CDP 저장: 성공 ✅
     """
     node_name = node.get('name', 'Unknown')
-    logger.info(f"  🔍 PDF 다운로드 시도: {node_name}")
     
     try:
-        # ===== 1단계: PDF 버튼 찾기 (8가지 버튼 전략 사용) =====
-        pdf_button = find_pdf_button(driver, log_attempts=True)
-        
-        if not pdf_button:
-            logger.info(f"  ℹ️  PDF 버튼 없음 - 이 페이지는 PDF를 제공하지 않습니다")
-            return 0
-        
-        # ===== 2단계: PDF 다운로드 (자동 전략 선택) =====
+        # ===== PDF 다운로드 (3가지 retrieval 방식 자동 시도) =====
         filename = safe_name(node_name) + '.pdf'
         pdf_path = download_pdf(
             driver=driver,
-            button=pdf_button,
             folder_path=folder_path,
             filename=filename,
             node_name=node_name,
@@ -157,10 +148,8 @@ def download_pdf_files(driver, node, folder_path):
         )
         
         if pdf_path:
-            logger.info(f"  ✅ PDF 다운로드 완료: {os.path.basename(pdf_path)}")
             return 1
         else:
-            logger.warning(f"  ⚠️  PDF 다운로드 실패 - 모든 전략 시도했으나 실패")
             return 0
         
     except Exception as e:
