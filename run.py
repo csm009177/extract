@@ -299,7 +299,7 @@ def download_pdf_files(driver, node, folder_path, selected_strategies=None):
         logger.error(traceback.format_exc())
         return 0
 
-def download_node(driver, node, retry_count=0):
+def download_node(driver, node, retry_count=0, selected_strategies=None):
     """개별 노드 다운로드 - (성공여부, PDF개수) 튜플 반환"""
     node_name = node.get('name', 'Unknown')
     node_href = node.get('href', '')
@@ -346,7 +346,7 @@ def download_node(driver, node, retry_count=0):
             if retry_count < MAX_RETRIES:
                 logger.info(f"  🔄 재시도 ({retry_count + 1}/{MAX_RETRIES})")
                 random_delay()
-                return download_node(driver, node, retry_count + 1)
+                return download_node(driver, node, retry_count + 1, selected_strategies=selected_strategies)
             return (False, 0)
         
         # HTML 저장
@@ -354,8 +354,8 @@ def download_node(driver, node, retry_count=0):
             f.write(driver.page_source)
         logger.info(f"  ✓ HTML: {safe_name(node_name)}.html")
         
-        # ✅ PDF 다운로드 호출
-        pdf_count = download_pdf_files(driver, node, folder_path)
+        # ✅ PDF 다운로드 호출 (선택된 전략 전달)
+        pdf_count = download_pdf_files(driver, node, folder_path, selected_strategies=selected_strategies)
         if pdf_count > 0:
             logger.info(f"  ✓ PDF {pdf_count}개 완료")
         
@@ -364,14 +364,14 @@ def download_node(driver, node, retry_count=0):
         
     except TimeoutException:
         if retry_count < MAX_RETRIES:
-            return download_node(driver, node, retry_count + 1)
+            return download_node(driver, node, retry_count + 1, selected_strategies=selected_strategies)
         return (False, 0)
         
     except Exception as e:
         logger.error(f"  ✗ 오류: {e}")
         if retry_count < MAX_RETRIES:
             random_delay()
-            return download_node(driver, node, retry_count + 1)
+            return download_node(driver, node, retry_count + 1, selected_strategies=selected_strategies)
         return (False, 0)
 
 def safe_quit_driver(driver):
@@ -453,7 +453,7 @@ if __name__ == "__main__":
             
             logger.info(f"\n[{i+1}/{total_nodes}] {node.get('name', 'Unknown')}")
             
-            success, node_pdf_count = download_node(driver, node)
+            success, node_pdf_count = download_node(driver, node, selected_strategies=selected_strategies)
             if success:
                 success_count += 1
                 pdf_count += node_pdf_count  # PDF 개수 누적

@@ -145,8 +145,8 @@ class PDFRetrievalController:
         self.driver = driver
         self.log_attempts = log_attempts
         
-        # ⭐ order 처리
-        if order:
+        # ⭐ order 처리 (None과 빈 리스트 구분)
+        if order is not None:
             # 사용자가 선택한 전략만 활성화
             strategies_config = self.override_strategies(order=order)
             if log_attempts:
