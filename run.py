@@ -23,6 +23,7 @@ from dotenv import load_dotenv
 from modules.auth import smart_login, login_to_krcon, ensure_logged_in
 from modules.tree_collector import collect_tree_structure
 from modules.pdf_detectors import download_pdf
+from modules.pdf_detectors.retrieval_controller import RETRIEVAL_STRATEGIES
 
 # 환경 변수 로드
 load_dotenv()
@@ -53,12 +54,69 @@ PAGE_LOAD_TIMEOUT = 30
 
 request_times = []
 
+def select_strategies():
+    """PDF 회수 전략 선택 (간단 버전)"""
+    print("\n" + "="*70)
+    print("📋 PDF 회수 전략 선택")
+    print("="*70)
+    
+    strategies_list = []
+    for idx, (name, config) in enumerate(
+        sorted(RETRIEVAL_STRATEGIES.items(), key=lambda x: x[1]['priority']), 
+        1
+    ):
+        status = "✅" if config['enabled'] else "❌"
+        strategies_list.append(name)
+        print(f"  [{idx}] {status} {config['display_name']}")
+    
+    print("="*70)
+    print("💡 선택 방법:")
+    print("  - 번호 입력: 1,2,3 또는 1 2 3")
+    print("  - Enter: 기본 설정 사용")
+    
+    choice = input("\n> 선택: ").strip()
+    
+    # 엔터 (기본값)
+    if not choice:
+        print("✅ 기본 설정 사용\n")
+        return None
+    
+    # 번호 파싱
+    selected = []
+    items = choice.replace(',', ' ').split()
+    
+    for item in items:
+        if item.isdigit():
+            idx = int(item) - 1
+            if 0 <= idx < len(strategies_list):
+                selected.append(strategies_list[idx])
+    
+    if selected:
+        # 선택된 전략의 display_name 표시
+        display_names = [RETRIEVAL_STRATEGIES[name]['display_name'] for name in selected]
+        for i, display_name in enumerate(display_names, 1):
+            print(f"✅ 선택 방식: [{i}] {display_name}")
+        print()
+        return selected
+    else:
+        print("⚠️  잘못된 입력. 기본 설정 사용\n")
+        return None
+
+
 def safe_name(name, max_length=80):
-    """파일/폴더명에서 금지된 문자 제거"""
+    """파일/폴더명에서 금지된 문자 제거 및 길이 제한"""
+    # 금지 문자 제거
     name = name.replace('/', '_').replace('\\', '_').replace(':', '_') \
                .replace('?', '_').replace('*', '_').replace('"', '_') \
                .replace('<', '_').replace('>', '_').replace('|', '_')
-    return name[:max_length]
+    
+    # 길이 제한 (너무 길면 잘라내고 해시 추가로 유니크 보장)
+    if len(name) > max_length:
+        import hashlib
+        name_hash = hashlib.md5(name.encode()).hexdigest()[:8]
+        return name[:max_length-9] + '_' + name_hash
+    
+    return name
 
 def rate_limit():
     """분당 요청 수 제한"""
@@ -209,27 +267,25 @@ def check_and_relogin(driver):
         return True  # 오류 시 일단 통과
 
 
-def download_pdf_files(driver, node, folder_path):
+def download_pdf_files(driver, node, folder_path, selected_strategies=None):
     """
     PDF 파일 다운로드 (Retrieval 아키텍처)
     
-    download_pdf()가 자동으로 처리:
-        [1/3] retrieval_cdp 시도...
-              ├─ 버튼 찾기: 성공 (내부 자동)
-              ├─ 버튼 클릭: 완료
-              └─ CDP 저장: 성공 ✅
+    Args:
+        selected_strategies: 선택된 전략 목록 (optional)
     """
     node_name = node.get('name', 'Unknown')
     
     try:
-        # ===== PDF 다운로드 (3가지 retrieval 방식 자동 시도) =====
+        # ===== PDF 다운로드 (선택된 전략으로 시도) =====
         filename = safe_name(node_name) + '.pdf'
         pdf_path = download_pdf(
             driver=driver,
             folder_path=folder_path,
             filename=filename,
             node_name=node_name,
-            log_attempts=True
+            log_attempts=True,
+            selected_strategies=selected_strategies  # ⭐ 전달
         )
         
         if pdf_path:
@@ -259,7 +315,15 @@ def download_node(driver, node, retry_count=0):
             logger.error(f"  ❌ 재로그인 실패: {node_name}")
             return (False, 0)
         
-        folder_path = os.path.join(BASE_DIR, node.get('path', safe_name(node_name)))
+        # ⭐ Windows 경로 길이 제한 대비: 긴 경로는 \\?\ 접두사 사용
+        raw_folder_path = os.path.join(BASE_DIR, node.get('path', safe_name(node_name)))
+        folder_path = raw_folder_path
+        
+        # Windows 경로 길이 제한 (260자) 체크
+        if len(raw_folder_path) > 200:  # 여유 있게 200자로 제한
+            # \\?\ 접두사로 긴 경로 지원 (최대 32,767자)
+            folder_path = '\\\\?\\' + os.path.abspath(raw_folder_path)
+        
         os.makedirs(folder_path, exist_ok=True)
         
         html_path = os.path.join(folder_path, safe_name(node_name) + '.html')
@@ -371,6 +435,9 @@ if __name__ == "__main__":
         if total_nodes == 0:
             logger.error("❌ 다운로드할 노드가 없습니다!")
             exit(1)
+        
+        # ⭐ 전략 선택
+        selected_strategies = select_strategies()
         
         # 2단계: 진행 상황 확인
         start_index = load_progress()

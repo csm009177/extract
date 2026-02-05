@@ -3,29 +3,171 @@
 """
 PDF Retrieval Controller
 - PDF 회수 방식 자동 판단 및 실행
-- 3가지 retrieval 방식 순차 시도
+- 여러 retrieval 전략 순차 시도
 """
 
 import logging
 import time
+import importlib
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from .strategies import DOWNLOAD_STRATEGY_REGISTRY, DOWNLOAD_STRATEGY_ORDER
 
 logger = logging.getLogger(__name__)
+
+
+# ⭐⭐⭐ PDF 회수 전략 설정 (중앙 관리)
+RETRIEVAL_STRATEGIES = {
+    "network": {
+        "enabled": False,  # ⭐ 기본 비활성화 (order로 활성화)
+        "priority": 1,
+        "module": "modules.pdf_detectors.strategies.retrieval_network",
+        "class_name": "RetrievalNetwork",
+        "display_name": "Network (HTTP 요청)",
+        "description": "HTTP 직접 다운로드 - 원본 PDF",
+    },
+    "browser": {
+        "enabled": False,  # ⭐ 기본 비활성화 (order로 활성화)
+        "priority": 2,
+        "module": "modules.pdf_detectors.strategies.retrieval_browser",
+        "class_name": "RetrievalBrowser",
+        "display_name": "Browser (다운로드 폴더)",
+        "description": "브라우저 다운로드 - 원본 PDF",
+    },
+    "cdp_print": {
+        "enabled": False,  # ⭐ 기본 비활성화 (order로 활성화)
+        "priority": 3,
+        "module": "modules.pdf_detectors.strategies.retrieval_cdp",
+        "class_name": "RetrievalCDP",
+        "display_name": "CDP printToPDF (빠름)",
+        "description": "Chrome DevTools Protocol - 벡터 PDF",
+    },
+    "cdp_scroll": {
+        "enabled": False,  # 기본 비활성화 (fallback)
+        "priority": 4,
+        "module": "modules.pdf_detectors.strategies.retrieval_cdp_scroll",
+        "class_name": "RetrievalCDPScroll",
+        "display_name": "CDP Scroll Screenshot (안전망)",
+        "description": "스크롤 스크린샷 - 이미지 PDF",
+    },
+}
 
 
 class PDFRetrievalController:
     """PDF 회수 방식 자동 선택 및 실행"""
     
-    def __init__(self, driver, log_attempts=True):
+    @staticmethod
+    def override_strategies(enable=None, disable=None, order=None):
+        """
+        전략 설정 오버라이드
+        
+        Args:
+            enable: list - 활성화할 전략
+            disable: list - 비활성화할 전략
+            order: list - 전략 순서 (이것만 활성화) ⭐
+        
+        Returns:
+            dict: 수정된 전략 설정
+        """
+        import copy
+        strategies = copy.deepcopy(RETRIEVAL_STRATEGIES)
+        
+        # ⭐ order가 있으면 해당 전략만 활성화 (나머지는 비활성화!)
+        if order:
+            # 모든 전략 먼저 비활성화
+            for name in strategies:
+                strategies[name]["enabled"] = False
+            
+            # order에 지정된 전략만 활성화 + 우선순위 부여
+            for idx, name in enumerate(order, 1):
+                if name in strategies:
+                    strategies[name]["enabled"] = True
+                    strategies[name]["priority"] = idx
+            
+            return strategies
+        
+        # order가 없으면 enable/disable 처리
+        if enable:
+            for name in enable:
+                if name in strategies:
+                    strategies[name]["enabled"] = True
+        
+        if disable:
+            for name in disable:
+                if name in strategies:
+                    strategies[name]["enabled"] = False
+        
+        return strategies
+    
+    def __init_strategies(self, strategies_config):
+        """전략 동적 로드 (내부 메서드)"""
+        self.strategy_registry = {}
+        self.active_strategies = []
+        
+        # enabled=True인 전략만 필터링
+        enabled = {k: v for k, v in strategies_config.items() if v.get("enabled", False)}
+        
+        # priority 순으로 정렬
+        sorted_strategies = sorted(enabled.items(), key=lambda x: x[1]["priority"])
+        
+        for name, config in sorted_strategies:
+            try:
+                # 동적 import
+                module = importlib.import_module(config["module"])
+                strategy_class = getattr(module, config["class_name"])
+                
+                # 인스턴스 생성 및 등록
+                self.strategy_registry[name] = {
+                    "instance": strategy_class(),
+                    "config": config,
+                }
+                self.active_strategies.append(name)
+                
+                if self.log_attempts:
+                    logger.info(f"     ✅ [{config['priority']}] {config['display_name']}")
+                
+            except Exception as e:
+                if self.log_attempts:
+                    logger.warning(f"     ⚠️  전략 로드 실패 ({name}): {e}")
+    
+    def __init__(self, driver, log_attempts=True, custom_strategies=None, order=None):
+        """
+        초기화
+        
+        Args:
+            driver: Selenium WebDriver
+            log_attempts: bool - 로그 출력 여부
+            custom_strategies: dict - 커스텀 전략 설정 (선택)
+            order: list - 사용할 전략 이름 목록 (순서대로 시도, optional)
+                   예: ["browser", "cdp_print"]
+                   None이면 기본값 사용 (network, browser, cdp_print)
+        """
         self.driver = driver
         self.log_attempts = log_attempts
         
+        # ⭐ order 처리
+        if order:
+            # 사용자가 선택한 전략만 활성화
+            strategies_config = self.override_strategies(order=order)
+            if log_attempts:
+                logger.info(f"  🎯 PDF Retrieval Controller 초기화 (선택된 전략: {order})")
+        elif custom_strategies:
+            # 커스텀 전략 설정 사용
+            strategies_config = custom_strategies
+            if log_attempts:
+                logger.info(f"  🎯 PDF Retrieval Controller 초기화 (커스텀)")
+        else:
+            # ⭐ 기본값: network, browser, cdp_print 활성화
+            default_order = ["network", "browser", "cdp_print"]
+            strategies_config = self.override_strategies(order=default_order)
+            if log_attempts:
+                logger.info(f"  🎯 PDF Retrieval Controller 초기화 (기본 설정)")
+        
+        # 전략 로드
+        self.__init_strategies(strategies_config)
+        
         if log_attempts:
-            logger.info(f"  🎯 PDF Retrieval Controller 초기화")
-            logger.info(f"     - 등록된 회수 전략: {len(DOWNLOAD_STRATEGY_REGISTRY)}개")
+            logger.info(f"     - 활성 전략: {len(self.active_strategies)}개")
     
     def download(self, folder_path, filename, node_name="Unknown", check_session=True):
         """
@@ -55,19 +197,14 @@ class PDFRetrievalController:
             logger.info(f"  🔍 PDF 다운로드 시도: {node_name}")
             logger.info(f"     - 저장 경로: {folder_path}/{filename}")
         
-        # 전략 순서대로 시도
-        for idx, strategy_name in enumerate(DOWNLOAD_STRATEGY_ORDER, 1):
-            strategy = DOWNLOAD_STRATEGY_REGISTRY[strategy_name]
-            
-            # 전략 이름을 사용자 친화적으로 변환
-            strategy_display_name = {
-                'retrieval_cdp': 'CDP (Page.printToPDF)',
-                'retrieval_network': 'Network (HTTP 요청)',
-                'retrieval_browser': 'Browser (다운로드 폴더)'
-            }.get(strategy_name, strategy_name)
+        # ⭐ 활성 전략 순서대로 시도
+        for idx, strategy_name in enumerate(self.active_strategies, 1):
+            strategy_info = self.strategy_registry[strategy_name]
+            strategy = strategy_info["instance"]
+            config = strategy_info["config"]
             
             if self.log_attempts:
-                logger.info(f"  📌 [{idx}/{len(DOWNLOAD_STRATEGY_ORDER)}] {strategy_display_name} 시도...")
+                logger.info(f"  📌 [{idx}/{len(self.active_strategies)}] {config['display_name']} 시도...")
             
             try:
                 # 각 retrieval 전략 실행 (내부에서 버튼 찾기부터 다운로드까지 모두 처리)
@@ -81,15 +218,15 @@ class PDFRetrievalController:
                 
                 if result:
                     if self.log_attempts:
-                        logger.info(f"  ✅ {strategy_display_name} 성공: {result}")
+                        logger.info(f"  ✅ {config['display_name']} 성공: {result}")
                     return result
                 
                 if self.log_attempts:
-                    logger.warning(f"  ⚠️  {strategy_display_name} 실패 - 다음 전략 시도")
+                    logger.warning(f"  ⚠️  {config['display_name']} 실패 - 다음 전략 시도")
             
             except Exception as e:
                 if self.log_attempts:
-                    logger.error(f"  ❌ {strategy_display_name} 오류: {e}")
+                    logger.error(f"  ❌ {config['display_name']} 오류: {e}")
                 continue
         
         # 모든 전략 실패

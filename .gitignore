@@ -9,6 +9,10 @@ logs/
 /*.html
 tree_debug.html
 treeview_debug.html
+debug_output/
+
+# 테스트/도구 (임시)
+tools/
 
 # 결과물 폴더
 output/
