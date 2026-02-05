@@ -22,6 +22,7 @@ from dotenv import load_dotenv
 # 모듈 import
 from modules.auth import login_to_krcon, ensure_logged_in
 from modules.tree_collector import collect_tree_structure
+from modules.pdf_detectors import find_pdf_button, download_pdf, get_button_info
 
 # 환경 변수 로드
 load_dotenv()
@@ -124,99 +125,43 @@ def save_progress(index, total):
         logger.error(f"진행 상황 저장 실패: {e}")
 
 def download_pdf_files(driver, node, folder_path):
-    """PDF 파일 다운로드 (상세 로그 포함)"""
-    pdf_count = 0
-    node_name = node.get('name', 'Unknown')
+    """
+    PDF 파일 다운로드 (새로운 아키텍처)
     
+    1단계: find_pdf_button() - 8가지 버튼 전략으로 버튼 찾기
+    2단계: download_pdf() - 상황 분석 후 적절한 다운로드 전략 자동 선택
+           - detector_cdp: Blob URL → CDP Page.printToPDF
+           - detector_network: 직접 PDF URL → requests.get()
+           - detector_download: 다운로드 폴더 모니터링
+    """
+    node_name = node.get('name', 'Unknown')
     logger.info(f"  🔍 PDF 다운로드 시도: {node_name}")
     
     try:
-        # 1. PDF 버튼 찾기 (#ankPrint)
-        logger.info(f"  📌 1단계: PDF 버튼 찾기 (ID: ankPrint)")
-        try:
-            pdf_button = driver.find_element(By.ID, "ankPrint")
-            logger.info(f"  ✅ PDF 버튼 발견!")
-            logger.info(f"     - 버튼 텍스트: '{pdf_button.text}'")
-            logger.info(f"     - href: {pdf_button.get_attribute('href')}")
-            logger.info(f"     - onclick: {pdf_button.get_attribute('onclick')}")
-            
-            # 2. 현재 창 개수 확인
-            windows_before = driver.window_handles
-            logger.info(f"  📌 2단계: PDF 버튼 클릭 (현재 창: {len(windows_before)}개)")
-            
-            # 3. 클릭
-            pdf_button.click()
-            time.sleep(3)
-            
-            # 4. 새 창 확인
-            windows_after = driver.window_handles
-            logger.info(f"     - 클릭 후 창: {len(windows_after)}개")
-            
-            if len(windows_after) > len(windows_before):
-                logger.info(f"  ✅ 새 창 열림!")
-                
-                # 5. 새 창으로 전환
-                new_window = [w for w in windows_after if w not in windows_before][0]
-                driver.switch_to.window(new_window)
-                
-                new_url = driver.current_url
-                logger.info(f"     - 새 창 URL: {new_url[:100]}...")
-                
-                # 6. PDF 저장 시도
-                if new_url.startswith("blob:"):
-                    logger.info(f"  📌 3단계: Blob URL 감지 → CDP 사용")
-                    
-                    try:
-                        # CDP로 PDF 저장
-                        result = driver.execute_cdp_cmd("Page.printToPDF", {
-                            "printBackground": True,
-                            "paperWidth": 8.27,
-                            "paperHeight": 11.69,
-                            "preferCSSPageSize": True
-                        })
-                        
-                        pdf_data = base64.b64decode(result['data'])
-                        pdf_path = os.path.join(folder_path, safe_name(node_name) + '.pdf')
-                        
-                        with open(pdf_path, 'wb') as f:
-                            f.write(pdf_data)
-                        
-                        file_size = len(pdf_data)
-                        logger.info(f"  ✅ PDF 저장 완료: {os.path.basename(pdf_path)} ({file_size:,} bytes)")
-                        pdf_count = 1
-                        
-                    except Exception as e:
-                        logger.error(f"  ❌ CDP PDF 저장 실패: {e}")
-                
-                elif new_url.endswith('.pdf') or 'pdf' in new_url.lower():
-                    logger.info(f"  📌 3단계: 직접 PDF URL")
-                    # 일반 URL 다운로드 로직
-                    pass
-                
-                else:
-                    logger.warning(f"  ⚠️  PDF가 아닌 URL")
-                
-                # 7. 원래 창으로 복귀
-                driver.close()
-                driver.switch_to.window(windows_before[0])
-                logger.info(f"  📌 4단계: 원래 창으로 복귀")
-                
-            else:
-                logger.warning(f"  ⚠️  새 창이 열리지 않음")
-                
-        except NoSuchElementException:
-            logger.info(f"  ℹ️  PDF 버튼 없음 (ID: ankPrint)")
-            
-            # 대체 방법: 일반 PDF 링크 찾기
-            logger.info(f"  📌 대체: 일반 PDF 링크 검색")
-            pdf_links = driver.find_elements(By.CSS_SELECTOR, "a[href$='.pdf'], a[href*='.pdf']")
-            
-            if pdf_links:
-                logger.info(f"  ✅ PDF 링크 {len(pdf_links)}개 발견")
-            else:
-                logger.info(f"  ℹ️  PDF 링크 없음")
+        # ===== 1단계: PDF 버튼 찾기 (8가지 버튼 전략 사용) =====
+        pdf_button = find_pdf_button(driver, log_attempts=True)
         
-        return pdf_count
+        if not pdf_button:
+            logger.info(f"  ℹ️  PDF 버튼 없음 - 이 페이지는 PDF를 제공하지 않습니다")
+            return 0
+        
+        # ===== 2단계: PDF 다운로드 (자동 전략 선택) =====
+        filename = safe_name(node_name) + '.pdf'
+        pdf_path = download_pdf(
+            driver=driver,
+            button=pdf_button,
+            folder_path=folder_path,
+            filename=filename,
+            node_name=node_name,
+            log_attempts=True
+        )
+        
+        if pdf_path:
+            logger.info(f"  ✅ PDF 다운로드 완료: {os.path.basename(pdf_path)}")
+            return 1
+        else:
+            logger.warning(f"  ⚠️  PDF 다운로드 실패 - 모든 전략 시도했으나 실패")
+            return 0
         
     except Exception as e:
         logger.error(f"  ❌ PDF 다운로드 오류: {e}")

@@ -11,9 +11,12 @@ extract/
 │   ├── __init__.py
 │   ├── auth.py         # 로그인 관리
 │   ├── tree_collector.py  # 트리 구조 수집
-│   └── status.py       # 다운로드 상태 확인
+│   ├── status.py       # 다운로드 상태 확인
+│   ├── pdf_detectors.py   # 🆕 PDF 버튼 탐지 (8가지 전략)
+│   └── PDF_DETECTORS_README.md  # 📖 PDF 탐지 모듈 가이드
 ├── tools/              # 🔧 디버깅 도구
-│   └── inspect_page.py # 페이지 구조 분석
+│   ├── inspect_page.py # 페이지 구조 분석
+│   └── test_pdf_detectors.py  # 🆕 PDF 탐지 전략 테스트
 ├── output/             # 📂 결과물
 │   ├── downloads/      # 다운로드된 HTML/PDF
 │   ├── inspect_results/  # 페이지 분석 결과
@@ -80,6 +83,17 @@ python -m status
 cd tools
 python inspect_page.py
 ```
+
+### 🆕 PDF 탐지 전략 테스트
+```bash
+cd tools
+python test_pdf_detectors.py
+```
+
+이 도구는 8가지 PDF 버튼 탐지 전략을 개별적으로 테스트하고,
+어떤 전략이 성공하는지 확인할 수 있습니다.
+
+상세 가이드: [`modules/PDF_DETECTORS_README.md`](modules/PDF_DETECTORS_README.md)
 
 ## ⚙️ 설정
 
