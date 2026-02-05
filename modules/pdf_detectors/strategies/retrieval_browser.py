@@ -28,7 +28,7 @@ class RetrievalBrowser:
         for strategy_name in BUTTON_STRATEGY_ORDER:
             strategy = BUTTON_STRATEGY_REGISTRY[strategy_name]
             try:
-                button = strategy.find(driver)
+                button = strategy.detect(driver)  # ✅ find → detect
                 if button:
                     return button
             except:
