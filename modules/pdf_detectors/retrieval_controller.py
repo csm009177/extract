@@ -7,6 +7,10 @@ PDF Retrieval Controller
 """
 
 import logging
+import time
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from .strategies import DOWNLOAD_STRATEGY_REGISTRY, DOWNLOAD_STRATEGY_ORDER
 
 logger = logging.getLogger(__name__)
@@ -38,7 +42,11 @@ class PDFRetrievalController:
         """
         # 세션 확인 (세션 만료 대비)
         if check_session:
-            if not self._check_session():
+            session_valid = self._check_session()
+            if self.log_attempts:
+                logger.info(f"  🔐 세션 확인: {'✅ 유효' if session_valid else '❌ 만료'}")
+            
+            if not session_valid:
                 if self.log_attempts:
                     logger.error(f"  ❌ 세션 만료 - 재로그인 필요")
                 return None
@@ -51,8 +59,15 @@ class PDFRetrievalController:
         for idx, strategy_name in enumerate(DOWNLOAD_STRATEGY_ORDER, 1):
             strategy = DOWNLOAD_STRATEGY_REGISTRY[strategy_name]
             
+            # 전략 이름을 사용자 친화적으로 변환
+            strategy_display_name = {
+                'retrieval_cdp': 'CDP (Page.printToPDF)',
+                'retrieval_network': 'Network (HTTP 요청)',
+                'retrieval_browser': 'Browser (다운로드 폴더)'
+            }.get(strategy_name, strategy_name)
+            
             if self.log_attempts:
-                logger.info(f"  📌 [{idx}/{len(DOWNLOAD_STRATEGY_ORDER)}] {strategy_name} 시도...")
+                logger.info(f"  📌 [{idx}/{len(DOWNLOAD_STRATEGY_ORDER)}] {strategy_display_name} 시도...")
             
             try:
                 # 각 retrieval 전략 실행 (내부에서 버튼 찾기부터 다운로드까지 모두 처리)
@@ -66,15 +81,15 @@ class PDFRetrievalController:
                 
                 if result:
                     if self.log_attempts:
-                        logger.info(f"  ✅ [{strategy_name}] 성공: {result}")
+                        logger.info(f"  ✅ {strategy_display_name} 성공: {result}")
                     return result
                 
                 if self.log_attempts:
-                    logger.warning(f"  ⚠️  [{strategy_name}] 실패 - 다음 전략 시도")
+                    logger.warning(f"  ⚠️  {strategy_display_name} 실패 - 다음 전략 시도")
             
             except Exception as e:
                 if self.log_attempts:
-                    logger.error(f"  ❌ [{strategy_name}] 오류: {e}")
+                    logger.error(f"  ❌ {strategy_display_name} 오류: {e}")
                 continue
         
         # 모든 전략 실패
@@ -88,22 +103,56 @@ class PDFRetrievalController:
             # 현재 URL 확인
             current_url = self.driver.current_url
             
+            if self.log_attempts:
+                logger.info(f"     🔍 현재 URL: {current_url[:80]}")
+            
+            # 🆕 중복 로그인 대화상자 감지 및 처리
+            if "DialogExistLoginSession.aspx" in current_url:
+                if self.log_attempts:
+                    logger.warning(f"     ⚠️  중복 로그인 대화상자 감지 - 자동 처리")
+                try:
+                    # "예" 버튼 클릭 (기존 세션 종료하고 계속)
+                    confirm_button = WebDriverWait(self.driver, 5).until(
+                        EC.element_to_be_clickable((By.ID, "btnYes"))
+                    )
+                    confirm_button.click()
+                    time.sleep(2)
+                    
+                    if self.log_attempts:
+                        logger.info(f"     ✅ 중복 로그인 대화상자 처리 완료")
+                    return True
+                except Exception as e:
+                    if self.log_attempts:
+                        logger.error(f"     ❌ 대화상자 처리 실패: {e}")
+                    return False
+            
             # 로그인 페이지로 리다이렉트되었는지 확인
             if "login" in current_url.lower() or "logon" in current_url.lower():
+                if self.log_attempts:
+                    logger.warning(f"     ⚠️  로그인 페이지 감지")
                 return False
             
-            # 세션 쿠키 확인
-            cookies = self.driver.get_cookies()
-            session_cookie = None
-            for cookie in cookies:
-                if "session" in cookie['name'].lower() or "auth" in cookie['name'].lower():
-                    session_cookie = cookie
-                    break
+            # KR-CON 사이트에 정상적으로 접근 중인지 확인
+            if "www.krs.co.kr" in current_url or "krcon.krs.co.kr" in current_url:
+                # 세션 쿠키 확인 (선택적)
+                cookies = self.driver.get_cookies()
+                if self.log_attempts:
+                    logger.info(f"     🍪 쿠키 개수: {len(cookies)}")
+                
+                if cookies:  # 쿠키가 있으면 OK
+                    if self.log_attempts:
+                        logger.info(f"     ✅ KR-CON 도메인 + 쿠키 존재")
+                    return True
+                
+                # 쿠키가 없어도 KR-CON 사이트 내에 있으면 OK
+                if self.log_attempts:
+                    logger.info(f"     ✅ KR-CON 도메인 (쿠키 없음)")
+                return True
             
-            if not session_cookie:
-                return False
-            
-            return True
+            # 다른 도메인이면 세션 확인 실패
+            if self.log_attempts:
+                logger.warning(f"     ⚠️  비정상 도메인: {current_url[:50]}")
+            return False
         
         except Exception as e:
             if self.log_attempts:

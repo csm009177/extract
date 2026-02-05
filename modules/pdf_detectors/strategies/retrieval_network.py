@@ -71,6 +71,28 @@ class RetrievalNetwork:
             if log_attempts:
                 logger.info(f"      ├─ 버튼 클릭: 완료")
             
+            # 🆕 중복 로그인 대화상자 처리
+            current_url = driver.current_url
+            if "DialogExistLoginSession" in current_url:
+                if log_attempts:
+                    logger.warning(f"      ├─ 중복 로그인 대화상자 감지")
+                try:
+                    from selenium.webdriver.common.by import By
+                    from selenium.webdriver.support.ui import WebDriverWait
+                    from selenium.webdriver.support import expected_conditions as EC
+                    
+                    confirm_button = WebDriverWait(driver, 5).until(
+                        EC.element_to_be_clickable((By.ID, "btnYes"))
+                    )
+                    confirm_button.click()
+                    time.sleep(2)
+                    
+                    if log_attempts:
+                        logger.info(f"      ├─ 대화상자 처리: 완료")
+                except Exception as e:
+                    if log_attempts:
+                        logger.error(f"      ├─ 대화상자 처리 실패: {e}")
+            
             # 4. 새 창 확인
             windows_after = driver.window_handles
             new_window_opened = len(windows_after) > len(windows_before)

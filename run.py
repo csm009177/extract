@@ -20,7 +20,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 # 모듈 import
-from modules.auth import login_to_krcon, ensure_logged_in
+from modules.auth import smart_login, login_to_krcon, ensure_logged_in
 from modules.tree_collector import collect_tree_structure
 from modules.pdf_detectors import download_pdf
 
@@ -128,6 +128,25 @@ def check_and_relogin(driver):
     """세션 확인 및 필요시 재로그인 (세션 만료 대비)"""
     try:
         current_url = driver.current_url
+        
+        # 🆕 중복 로그인 대화상자 처리
+        if "DialogExistLoginSession" in current_url:
+            logger.warning(f"⚠️  중복 로그인 대화상자 감지 - 자동 처리")
+            try:
+                from selenium.webdriver.common.by import By
+                from selenium.webdriver.support.ui import WebDriverWait
+                from selenium.webdriver.support import expected_conditions as EC
+                
+                confirm_button = WebDriverWait(driver, 5).until(
+                    EC.element_to_be_clickable((By.ID, "btnYes"))
+                )
+                confirm_button.click()
+                time.sleep(2)
+                logger.info(f"✅ 대화상자 처리 완료")
+                return True
+            except Exception as e:
+                logger.error(f"❌ 대화상자 처리 실패: {e}")
+                return False
         
         # 로그인 페이지로 리다이렉트되었는지 확인
         if "login" in current_url.lower() or "logon" in current_url.lower():
@@ -281,8 +300,12 @@ if __name__ == "__main__":
         logger.info("🌐 Chrome 브라우저 시작...")
         driver = webdriver.Chrome(options=options)
         
-        # 로그인
-        if not login_to_krcon(driver):
+        # 🆕 스마트 로그인 (필요할 때만 로그아웃)
+        logger.info("\n" + "="*70)
+        logger.info("🔐 로그인")
+        logger.info("="*70)
+        
+        if not smart_login(driver):
             logger.error("❌ 로그인 실패. 종료합니다.")
             exit(1)
         
@@ -357,5 +380,15 @@ if __name__ == "__main__":
         logger.info(f"📊 통계: 성공 {success_count}, 실패 {fail_count}, PDF {pdf_count}개")
     
     finally:
+        # 🆕 종료 시 로그아웃 (선택사항 - 주석 처리)
+        # 다음 실행 시 스마트 로그인이 알아서 처리하므로 불필요
+        # if driver:
+        #     try:
+        #         logger.info("🚪 로그아웃 중...")
+        #         from modules.auth import logout_from_krcon
+        #         logout_from_krcon(driver)
+        #     except:
+        #         pass
+        
         safe_quit_driver(driver)
         logger.info("\n프로그램 종료\n")

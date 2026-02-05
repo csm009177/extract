@@ -71,6 +71,28 @@ class RetrievalCDP:
             if log_attempts:
                 logger.info(f"      ├─ 버튼 클릭: 완료")
             
+            # 🆕 중복 로그인 대화상자 처리
+            current_url = driver.current_url
+            if "DialogExistLoginSession" in current_url:
+                if log_attempts:
+                    logger.warning(f"      ├─ 중복 로그인 대화상자 감지")
+                try:
+                    from selenium.webdriver.common.by import By
+                    from selenium.webdriver.support.ui import WebDriverWait
+                    from selenium.webdriver.support import expected_conditions as EC
+                    
+                    confirm_button = WebDriverWait(driver, 5).until(
+                        EC.element_to_be_clickable((By.ID, "btnYes"))
+                    )
+                    confirm_button.click()
+                    time.sleep(2)
+                    
+                    if log_attempts:
+                        logger.info(f"      ├─ 대화상자 처리: 완료")
+                except Exception as e:
+                    if log_attempts:
+                        logger.error(f"      ├─ 대화상자 처리 실패: {e}")
+            
             # 4. 새 창 확인
             windows_after = driver.window_handles
             new_window_opened = len(windows_after) > len(windows_before)
@@ -105,10 +127,18 @@ class RetrievalCDP:
                 if log_attempts:
                     logger.info(f"      └─ CDP 저장: 성공 ({file_size:,} bytes)")
                 
-                # 6. 정리
+                # 6. 🆕 정리 - 새 창 닫기 및 원본 창 복귀
                 if new_window_opened:
-                    driver.close()
-                    driver.switch_to.window(original_window)
+                    try:
+                        driver.close()
+                        driver.switch_to.window(original_window)
+                        if log_attempts:
+                            logger.info(f"      └─ 새 창 닫기: 완료")
+                    except Exception as e:
+                        if log_attempts:
+                            logger.warning(f"      └─ 창 정리 실패: {e}")
+                        # 실패해도 계속 진행
+                        pass
                 
                 return pdf_path
             
@@ -116,7 +146,7 @@ class RetrievalCDP:
                 if log_attempts:
                     logger.error(f"      └─ CDP 저장 실패: {e}")
                 
-                # 정리
+                # 🆕 정리 - 오류 발생 시에도 원본 창 복귀
                 if new_window_opened:
                     try:
                         driver.close()
@@ -129,4 +159,11 @@ class RetrievalCDP:
         except Exception as e:
             if log_attempts:
                 logger.error(f"      └─ 오류: {e}")
+            
+            # 🆕 예외 발생 시에도 원본 창으로 복귀 시도
+            try:
+                driver.switch_to.window(original_window)
+            except:
+                pass
+            
             return None
