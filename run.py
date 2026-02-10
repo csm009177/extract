@@ -376,16 +376,36 @@ def download_node(driver, node, retry_count=0, selected_strategies=None):
 
 def safe_quit_driver(driver):
     """안전하게 드라이버 종료"""
+    import psutil
+    import sys
     if driver:
         try:
             logger.info("🔚 브라우저 종료 중...")
             driver.quit()
             logger.info("✓ 종료 완료")
-        except:
+        except Exception as e:
+            logger.warning(f"드라이버 quit 실패: {e}")
             try:
-                driver.service.process.kill()
-            except:
-                pass
+                # 프로세스 트리 강제 종료
+                proc = getattr(driver.service, 'process', None)
+                if proc:
+                    p = psutil.Process(proc.pid)
+                    for child in p.children(recursive=True):
+                        child.kill()
+                    p.kill()
+                    logger.info("✓ 프로세스 트리 강제 종료 완료")
+            except Exception as e2:
+                logger.warning(f"프로세스 kill 실패: {e2}")
+        finally:
+            # 혹시 남아있는 프로세스가 있으면 모두 종료
+            try:
+                chrome_procs = [p for p in psutil.process_iter(['name']) if 'chrome' in p.info['name'].lower()]
+                for p in chrome_procs:
+                    p.kill()
+                logger.info("✓ 모든 chrome 프로세스 종료 완료")
+            except Exception as e3:
+                logger.warning(f"chrome 프로세스 종료 실패: {e3}")
+            sys.exit(0)
 
 if __name__ == "__main__":
     logger.info("\n" + "="*70)
